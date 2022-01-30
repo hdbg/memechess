@@ -1,0 +1,35 @@
+[project]
+name = "evilfish"
+version = "1.0"
+description = "Advanced lichess bot"
+authors = [
+    {name = "hdbg", email = ""},
+]
+dependencies = [
+    "chess>=1.8.0",
+    "click>=8.0.3",
+    "fastapi>=0.73.0",
+    "Hypercorn>=0.13.2",
+    "structlog>=21.5.0",
+    "lupa>=1.10",
+    "aiohttp>=3.8.1",
+    "orjson>=3.6.6",
+]
+requires-python = ">=3.10"
+license = {text = "MIT"}
+
+[project.urls]
+homepage = ""
+
+[project.optional-dependencies]
+[tool]
+[tool.pdm]
+[tool.pdm.dev-dependencies]
+dev = [
+    "nuitka>=0.6.19.4",
+    "zstandard>=0.17.0",
+]
+
+[build-system]
+requires = ["pdm-pep517"]
+build-backend = "pdm.pep517.api"
