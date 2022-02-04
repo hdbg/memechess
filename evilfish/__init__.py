@@ -1,66 +1,39 @@
-import asyncio
+import os
+import shutil
+import types
+import typing
 
-import chess.engine
-
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
-from fastapi.responses import ORJSONResponse
-
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
-
-from evilfish import utils
-from evilfish.core.engine import engine
-from evilfish.core.log import logger
+from evilfish.core import engine, consts, utils
 from evilfish.core.protection import protector
+from evilfish.log import logger
+from evilfish.proto import ProtocolInterface
 
-from evilfish.handlers import game
-from evilfish.config import config
-
-
-# pp.mount("/files", StaticFiles(directory=utils.get_file_path("files")), name="files")
+from rich.console import Console
 
 class EvilFish:
-    app = FastAPI(title="EvilFish", default_response_class=ORJSONResponse)
+    console = Console()
 
-    def _debug_detect(self):
-        # try:
-        #     t = __compiled__
-        #
-        #     config.debug = False
-        # except NameError:
-        #     config.debug = True
-        #     logger.info("debug")
-        config.debug = False
+    state: types.SimpleNamespace
+    debug: bool
 
-    def __init__(self):
-        self._debug_detect()
+    connector: typing.Type[ProtocolInterface]
 
-        @self.app.on_event("startup")
-        async def startup_event():
-            if not config.debug:
-                asyncio.create_task(protector.heartbeat())
+    def boot(self):
+        with self.console.status("[green]Booting"):
 
-            await engine.load()
 
-            logger.info("server.ready")
+            self.load_files()
 
-        self.app.add_api_route("/files/{name}", self.static)
+    def load_files(self):
+        if not os.path.exists(consts.APP_MAIN_FOLDER):
+            os.mkdir(consts.APP_MAIN_FOLDER)
 
-        game.register(self.app)
+        if not os.path.exists(consts.APP_ENGINE_FILE):
+            shutil.copy(utils.get_file_path("files/engine.exe"), consts.APP_ENGINE_FILE)
 
-    async def static(self, name: str):
-        return FileResponse(utils.get_file_path(f"files\\{name}"))
-
-    def run(self):
-        logger.info("server.booting")
-        asyncio.set_event_loop_policy(chess.engine.EventLoopPolicy())
-
-        c = Config()
-        c.bind = ["localhost:8080"]
-        c.loglevel = "ERROR"
-
-        asyncio.run(serve(self.app, c))
+        # if not os.path.exists(consts.APP_STRATEGIES_FOLDER):
+        #     os.mkdir(consts.APP_STRATEGIES_FOLDER)
+        #     shutil.copy(utils.get_file_path(utils.get_file_path("files\\strategy.json")), consts.APP_ENGINE_FILE)
 
 
 fish = EvilFish()

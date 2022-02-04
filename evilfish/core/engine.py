@@ -2,8 +2,8 @@ import chess
 import chess.engine
 from chess.engine import EngineTerminatedError
 
-from evilfish import utils
-from evilfish.core.log import logger
+from evilfish.core import utils
+from evilfish.log import logger
 
 
 class Engine:

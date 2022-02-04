@@ -7,8 +7,7 @@ import typing
 
 import aiohttp
 
-from evilfish.config import config
-from evilfish.core.log import logger
+from evilfish.log import logger
 
 API_URL = "https://auther.quarc.me/v1"
 LOOP_WAIT = 60

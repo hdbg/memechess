@@ -115,7 +115,7 @@ var Utils = {
         return rand(1, 100) <= prob;
     },
     uci: function (move) {
-        return { from: move.substring(0, 2), to: move.substring(2, 4) };
+        return {from: move.substring(0, 2), to: move.substring(2, 4)};
     },
     make_request(url, method, data, onload = null, onerror = null) {
         GM_xmlhttpRequest({
@@ -171,7 +171,7 @@ var Game = {
 
         if (opts.data.steps.length > 1) {
             for (let i = 1; i < opts.data.steps.length; i++) {
-                moves_stack.push({san:opts.data.steps[i].san});
+                moves_stack.push({san: opts.data.steps[i].san});
             }
         }
 
@@ -180,7 +180,9 @@ var Game = {
             variant: this.state.variant,
             speed: this.state.speed,
             stack: moves_stack,
-        }, (r) => {console.log(r)});
+        }, (r) => {
+            console.log(r)
+        });
 
         this.hooks.apiMove = new Hook(round.socket.handlers, "move", this.move.bind(this), "after");
 
@@ -209,7 +211,7 @@ var Game = {
 
         console.log("Step: ", step);
         Utils.make_request("/game/push", "POST", {
-            move: { san: step.san },
+            move: {san: step.san},
             ply: ply, fen: this.board.getFen(),
             white: time.white, black: time.black
         }, (r) => {
@@ -219,7 +221,6 @@ var Game = {
 
             if (json.event == "game.engine") {
                 let move = json.data.move.uci;
-                
 
 
                 this.send(Utils.uci(move).from, Utils.uci(move).to, 0.0);
@@ -258,7 +259,7 @@ var Game = {
     time() {
         return {
             white: this.round.clock != undefined ? (this.round.clock.times.white / 600) * 0.6 : 0.0,
-            black:  this.round.clock != undefined ? (this.round.clock.times.black / 600) * 0.6 : 0.0
+            black: this.round.clock != undefined ? (this.round.clock.times.black / 600) * 0.6 : 0.0
         };
     },
 
@@ -288,7 +289,8 @@ var Game = {
                 for (const [key, value] of Object.entries(opts)) {
                     elm[key] = value;
                 }
-            };
+            }
+
             anchor.appendChild(elm);
             that.ui[id] = elm;
 
@@ -340,6 +342,6 @@ function injector() {
             }
         }
     });
-};
+}
 
 injector();
