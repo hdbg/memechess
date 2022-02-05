@@ -1,3 +1,5 @@
+import asyncio
+
 from evilfish.core import consts
 from evilfish import fish
 

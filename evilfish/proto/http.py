@@ -1,13 +1,11 @@
 import asyncio
 
-import chess
-from . import ProtocolInterface
-from fastapi import FastAPI
 from evilfish.game import schemas
 from evilfish.game.logic import game_logic
-
-from hypercorn.config import Config
+from fastapi import FastAPI
 from hypercorn.asyncio import serve
+from hypercorn.config import Config
+from . import ProtocolInterface
 
 
 class HttpTransport(ProtocolInterface):
@@ -19,17 +17,23 @@ class HttpTransport(ProtocolInterface):
         self.app.add_api_route("/new", self.new_game, methods=["POST"])
         self.app.add_api_route("/push", self.push_move, methods=["POST"])
 
+        self.app.add_api_route("/ping", self.ping)
+
     async def is_ready(self) -> bool:
         return self.connected
 
     async def run(self) -> asyncio.Task:
         c = Config()
-        c.bind = ["localhost:8080"]
+        c.bind = ["localhost:4323"]
         c.loglevel = "ERROR"
 
         self.task = asyncio.create_task(serve(self.app, c))
 
         return self.task
+
+    async def ping(self, req):
+        print(req)
+        return "Pong!"
 
     async def new_game(self, data: schemas.GameStartSchema):
         self.connected = True

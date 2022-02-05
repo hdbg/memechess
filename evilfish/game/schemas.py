@@ -1,15 +1,16 @@
+import typing
+
+import chess
 from pydantic import BaseModel, Field
 from .types import Variant
-import typing
-import chess
 
 
 class GameCrazyHousePocketSchema(BaseModel):
-    pawn: int = Field(int, default=16)
-    horse: int = Field(int, default=0, le=4)
-    bishop: int = Field(int, default=0, le=4)
-    rook: int = Field(int, default=0, le=4)
-    queen: int = Field(int, default=0, le=2)
+    pawn: int = Field(0, le=16)
+    horse: int = Field(0, le=4)
+    bishop: int = Field(0, le=4)
+    rook: int = Field(0, le=4)
+    queen: int = Field(0, le=2)
 
 
 class GameStartSchema(BaseModel):

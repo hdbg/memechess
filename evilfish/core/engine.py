@@ -5,12 +5,13 @@ from chess.engine import EngineTerminatedError
 from evilfish.core import utils
 from evilfish.log import logger
 
+from evilfish.core import consts
 
 class Engine:
     _worker: chess.engine.Protocol
 
     async def load(self):
-        bin_path = utils.get_file_path("files\\engine.exe")
+        bin_path = utils.get_file_path(consts.APP_ENGINE_FILE)
 
         _, self._worker = await chess.engine.popen_uci(bin_path)
         logger.info("engine.booted")
