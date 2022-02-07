@@ -1,11 +1,10 @@
 import chess
 import chess.engine
 from chess.engine import EngineTerminatedError
-
+from evilfish.core import consts
 from evilfish.core import utils
 from evilfish.log import logger
 
-from evilfish.core import consts
 
 class Engine:
     _worker: chess.engine.Protocol
@@ -14,6 +13,7 @@ class Engine:
         bin_path = utils.get_file_path(consts.APP_ENGINE_FILE)
 
         _, self._worker = await chess.engine.popen_uci(bin_path)
+        logger.debug("engine.opts", opts=self._worker.options)
         logger.info("engine.booted")
 
     async def play(self, b: chess.Board, limit: chess.engine.Limit) -> chess.engine.PlayResult:

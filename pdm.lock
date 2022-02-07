@@ -196,6 +196,12 @@ requires_python = ">=3.5"
 summary = "Pygments is a syntax highlighting package written in Python."
 
 [[package]]
+name = "python-box"
+version = "5.4.1"
+requires_python = ">=3.6"
+summary = "Advanced Python dictionaries with dot notation access"
+
+[[package]]
 name = "rich"
 version = "11.1.0"
 requires_python = ">=3.6.2,<4.0.0"
@@ -275,7 +281,7 @@ dependencies = [
 
 [metadata]
 lock_version = "3.1"
-content_hash = "sha256:9e8e7d1abacf7f25c016a4d007c3665214d521071f06b7ffa6e7ca03637e0c17"
+content_hash = "sha256:482ee9e423bbd8e617e27605bcdf38c4a0b757c21c03568ef1329ffe347047d4"
 
 [metadata.files]
 "aiohttp 3.8.1" = [
@@ -671,6 +677,10 @@ content_hash = "sha256:9e8e7d1abacf7f25c016a4d007c3665214d521071f06b7ffa6e7ca036
 "pygments 2.11.2" = [
     {file = "Pygments-2.11.2-py3-none-any.whl", hash = "sha256:44238f1b60a76d78fc8ca0528ee429702aae011c265fe6a8dd8b63049ae41c65"},
     {file = "Pygments-2.11.2.tar.gz", hash = "sha256:4e426f72023d88d03b2fa258de560726ce890ff3b630f88c21cbb8b2503b8c6a"},
+]
+"python-box 5.4.1" = [
+    {file = "python_box-5.4.1-py3-none-any.whl", hash = "sha256:60ae9156de34cf92b899bd099580950df70a5b0813e67a3310a1cdd1976457fa"},
+    {file = "python-box-5.4.1.tar.gz", hash = "sha256:b68e0f8abc86f3deda751b3390f64df64a0989459de51ba4db949662a7b4d8ac"},
 ]
 "rich 11.1.0" = [
     {file = "rich-11.1.0-py3-none-any.whl", hash = "sha256:365ebcdbfb3aa8d4b0ed2490e0fbf7b886a39d14eb7ea5fb7aece950835e1eed"},

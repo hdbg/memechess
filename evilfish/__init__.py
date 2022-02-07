@@ -1,5 +1,6 @@
 import asyncio
 import os
+import shutil
 import typing
 
 import aiohttp
@@ -9,6 +10,7 @@ from evilfish.core.protection import protector
 from evilfish.log import logger
 from evilfish.proto import ProtocolInterface
 from evilfish.proto import http, ws, emu
+from evilfish.strategies import strategy_manager
 from rich.console import Console
 from rich.progress import Progress
 
@@ -27,14 +29,30 @@ class EvilFish:
         if not os.path.exists(consts.APP_MAIN_FOLDER):
             os.mkdir(consts.APP_MAIN_FOLDER)
 
-        # if not os.path.exists(consts.APP_STRATEGIES_FOLDER):
-        #     os.mkdir(consts.APP_STRATEGIES_FOLDER)
-        #     shutil.copy(utils.get_file_path(utils.get_file_path("files\\strategy.json")), consts.APP_ENGINE_FILE)
+        if not os.path.exists(consts.APP_STRATEGIES_FOLDER):
+            os.mkdir(consts.APP_STRATEGIES_FOLDER)
+            # shutil.copy(utils.get_file_path(utils.get_file_path("files\\strategy.json")), consts.APP_STRATEGIES_FOLDER)
+
+        strategy_manager.load()
 
     async def main(self):
         await self.download_engine()
         await engine.load()
+
+        # TEST
+        from evilfish.game.logic import game_logic
+        from evilfish.game import schemas
+
+        from evilfish.game.types import Variant
+        import chess
+        await game_logic.new_game(schemas.GameStartSchema(variant=Variant.standard, player_side=chess.WHITE, id="kek", history=[]))
+        await game_logic._query_engine(schemas.GameMoveSchema(white_clock=None, black_clock=None, move="a2a4"))
+
+        # END
+
         await self.run()
+
+
 
         await self.connector.task
 
@@ -57,7 +75,6 @@ class EvilFish:
                     logger.info("ready")
 
                     return True
-
 
     async def download_engine(self):
         async with aiohttp.ClientSession() as session:

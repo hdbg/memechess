@@ -24,20 +24,28 @@ class GameStartSchema(BaseModel):
 
     inc: typing.Optional[float] = 0.0
 
-    white_clock: typing.Optional[float] = 0.0
-    black_clock: typing.Optional[float] = 0.0
+    white_clock: typing.Optional[float] = None
+    black_clock: typing.Optional[float] = None
 
     history: typing.List[str]
 
 
 class GameMoveSchema(BaseModel):
-    fen: str
-    color: chess.Color
+    # fen: str
+    # color: chess.Color
 
     move: typing.Optional[str]
     drop: typing.Optional[str]
 
-    ply: int
+    white_clock: typing.Optional[float] = 0.0
+    black_clock: typing.Optional[float] = 0.0
+
 
 #
-# class GameEngineResponseSchema(BaseModel):
+class GameEngineResponseSchema(BaseModel):
+    move: typing.Optional[str]
+    drop: typing.Optional[str]
+
+    score: int
+
+    delay: float
