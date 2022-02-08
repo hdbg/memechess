@@ -17,3 +17,5 @@ APP_LIC_FILE = APP_MAIN_FOLDER + "/user.dat"
 APP_ENGINE_FILE = APP_MAIN_FOLDER + "/engine.exe"
 
 APP_DEBUG = False
+
+CONN_HTTP_ADDR = "localhost:4323"

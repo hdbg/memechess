@@ -70,7 +70,8 @@ class Strategy:
 
             return result
 
-    def _verify_types(self, result: schemas.TriggerResult):
+    @staticmethod
+    def _verify_types(result: schemas.TriggerResult):
         for name, type_hint in typing.get_type_hints(schemas.TriggerResult).items():
             if not isinstance(getattr(result, name), type_hint):
                 logger.error("strategy.type_mismatch", name=name, type=type_hint)

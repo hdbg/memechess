@@ -1,3 +1,5 @@
+import typing
+
 import chess
 import chess.engine
 from chess.engine import EngineTerminatedError
@@ -16,15 +18,18 @@ class Engine:
         logger.debug("engine.opts", opts=self._worker.options)
         logger.info("engine.booted")
 
-    async def play(self, b: chess.Board, limit: chess.engine.Limit) -> chess.engine.PlayResult:
+    async def play(self, b: chess.Board, limit: chess.engine.Limit,
+                   opts={}, **kwargs) -> chess.engine.PlayResult:
+        if opts is None:
+            opts = {}
         try:
-            pr = await self._worker.play(b, limit, info=chess.engine.INFO_SCORE)
+            pr = await self._worker.play(b, limit, info=chess.engine.INFO_ALL, options=opts, **kwargs)
 
             return pr
         except EngineTerminatedError:
             logger.error("engine.crash")
             await self.load()
-            await self.play(b, limit)
+            await self.play(b, limit, opts, **kwargs)
 
     async def analyse(self, b: chess.Board, limit: chess.engine.Limit) -> dict:
         try:

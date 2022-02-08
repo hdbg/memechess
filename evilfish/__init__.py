@@ -1,6 +1,5 @@
 import asyncio
 import os
-import shutil
 import typing
 
 import aiohttp
@@ -11,13 +10,10 @@ from evilfish.log import logger
 from evilfish.proto import ProtocolInterface
 from evilfish.proto import http, ws, emu
 from evilfish.strategies import strategy_manager
-from rich.console import Console
 from rich.progress import Progress
 
 
 class EvilFish:
-    console = Console()
-
     connector: ProtocolInterface
 
     def boot(self):
@@ -38,23 +34,19 @@ class EvilFish:
     async def main(self):
         await self.download_engine()
         await engine.load()
-
-        # TEST
-        from evilfish.game.logic import game_logic
-        from evilfish.game import schemas
-
-        from evilfish.game.types import Variant
-        import chess
-        await game_logic.new_game(schemas.GameStartSchema(variant=Variant.standard, player_side=chess.WHITE, id="kek", history=[]))
-        await game_logic._query_engine(schemas.GameMoveSchema(white_clock=None, black_clock=None, move="a2a4"))
-
-        # END
-
         await self.run()
 
+        while True:
+            try:
+                if self.connector.task.done():
+                    break
 
+                await asyncio.sleep(1)
+            except KeyboardInterrupt:
+                self.connector.task.cancel()
+                asyncio.get_event_loop().close()
+                exit(0)
 
-        await self.connector.task
 
     async def run(self) -> bool:
         proto_instances: typing.List[ProtocolInterface] = [http.http]
@@ -75,6 +67,7 @@ class EvilFish:
                     logger.info("ready")
 
                     return True
+
 
     async def download_engine(self):
         async with aiohttp.ClientSession() as session:
@@ -109,7 +102,7 @@ class EvilFish:
                     file.write(chunk)
 
                     downloaded_bytes += CHUNK_SIZE
-                    progress.update(dw_task, completed=(downloaded_bytes / int(total_size)) * 100)
+                progress.update(dw_task, completed=(downloaded_bytes / int(total_size)) * 100)
 
 
 fish = EvilFish()

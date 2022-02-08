@@ -44,15 +44,15 @@ class StrategyScheme(BaseModel):
     variants: typing.List[types.Variant] = Field(...)
     priority: int = Field(1, ge=1)
 
-    auto_next: bool = Field(False)
+    auto_next_game: bool = Field(False)
     auto_first_move: bool = Field(False)
 
     triggers: typing.List[TriggerScheme] = Field([])
 
 
 class TriggerResult(BaseModel):
-    delay: float = 0.0
-    depth: typing.Optional[int] = Field(None, ge=0)
+    delay: typing.Optional[float] = Field(None, gt=0.0)
+    depth: typing.Optional[int] = Field(None, gt=0, lt=100)
     elo: typing.Optional[int] = Field(None, ge=500, le=2850)
 
 

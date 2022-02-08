@@ -1,9 +1,12 @@
+import logging
+
 import structlog
 import sys
+
+from rich.console import Console
+
+console = Console()
 logger = structlog.get_logger("EvilFish Logger")
 
 
-def excp_handler(ex_type, exception, traceback):
-    logger.exception("error")
-
-sys.excepthook = excp_handler
+# logging.basicConfig(level=logging.DEBUG)
