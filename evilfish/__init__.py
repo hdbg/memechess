@@ -1,66 +1,108 @@
 import asyncio
+import os
+import typing
 
-import chess.engine
-
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
-from fastapi.responses import ORJSONResponse
-
-from hypercorn.asyncio import serve
-from hypercorn.config import Config
-
-from evilfish import utils
+import aiohttp
+from evilfish.core import engine, consts, utils
 from evilfish.core.engine import engine
-from evilfish.core.log import logger
 from evilfish.core.protection import protector
+from evilfish.log import logger
+from evilfish.proto import ProtocolInterface
+from evilfish.proto import http, ws, emu
+from evilfish.strategies import strategy_manager
+from rich.progress import Progress
 
-from evilfish.handlers import game
-from evilfish.config import config
-
-
-# pp.mount("/files", StaticFiles(directory=utils.get_file_path("files")), name="files")
 
 class EvilFish:
-    app = FastAPI(title="EvilFish", default_response_class=ORJSONResponse)
+    connector: ProtocolInterface
 
-    def _debug_detect(self):
-        # try:
-        #     t = __compiled__
-        #
-        #     config.debug = False
-        # except NameError:
-        #     config.debug = True
-        #     logger.info("debug")
-        config.debug = False
+    def boot(self):
+        self.load_files()
 
-    def __init__(self):
-        self._debug_detect()
+        asyncio.run(self.main())
 
-        @self.app.on_event("startup")
-        async def startup_event():
-            if not config.debug:
-                asyncio.create_task(protector.heartbeat())
+    def load_files(self):
+        if not os.path.exists(consts.APP_MAIN_FOLDER):
+            os.mkdir(consts.APP_MAIN_FOLDER)
 
-            await engine.load()
+        if not os.path.exists(consts.APP_STRATEGIES_FOLDER):
+            os.mkdir(consts.APP_STRATEGIES_FOLDER)
+            # shutil.copy(utils.get_file_path(utils.get_file_path("files\\strategy.json")), consts.APP_STRATEGIES_FOLDER)
 
-            logger.info("server.ready")
+        strategy_manager.load()
 
-        self.app.add_api_route("/files/{name}", self.static)
+    async def main(self):
+        await self.download_engine()
+        await engine.load()
+        await self.run()
 
-        game.register(self.app)
+        while True:
+            try:
+                if self.connector.task.done():
+                    break
 
-    async def static(self, name: str):
-        return FileResponse(utils.get_file_path(f"files\\{name}"))
+                await asyncio.sleep(1)
+            except KeyboardInterrupt:
+                self.connector.task.cancel()
+                asyncio.get_event_loop().close()
+                exit(0)
 
-    def run(self):
-        logger.info("server.booting")
-        asyncio.set_event_loop_policy(chess.engine.EventLoopPolicy())
 
-        c = Config()
-        c.bind = ["localhost:8080"]
-        c.loglevel = "ERROR"
+    async def run(self) -> bool:
+        proto_instances: typing.List[ProtocolInterface] = [http.http]
 
-        asyncio.run(serve(self.app, c))
+        for inst in proto_instances:
+            await inst.run()
+
+        while True:
+            for inst in proto_instances:
+                try:
+                    await asyncio.wait_for(asyncio.shield(inst.task), timeout=5)
+                except asyncio.TimeoutError:
+                    pass
+
+                if (await inst.is_ready()):
+                    self.connector = inst
+
+                    logger.info("ready")
+
+                    return True
+
+
+    async def download_engine(self):
+        async with aiohttp.ClientSession() as session:
+            releases = await session.get("https://api.github.com/repos/ianfab/Fairy-Stockfish/releases",
+                                         params={"page": 1, "per_page": 1},
+                                         headers={"accept": "application/vnd.github.v3+json"})
+
+            download_link = None
+
+            for binary in (await releases.json())[0].get("assets"):
+                if binary.get("name") == "fairy-stockfish-largeboard_x86-64.exe":
+                    download_link = binary.get("browser_download_url")
+                    break
+
+            if not download_link:
+                logger.fatal("engine.download_failed")
+                # pprint((await releases.json())[0].get("assets"))
+                return
+
+            CHUNK_SIZE = 1024
+
+            with Progress() as progress:
+                engine_release = await session.get(download_link)
+
+                dw_task = progress.add_task("[green]Downloading engine")
+                file = open(consts.APP_ENGINE_FILE, "wb")
+
+                downloaded_bytes = 0
+                total_size = engine_release.headers.get("Content-Length")
+
+                async for chunk in engine_release.content.iter_chunked(CHUNK_SIZE):
+                    file.write(chunk)
+
+                    downloaded_bytes += CHUNK_SIZE
+                progress.update(dw_task, completed=(downloaded_bytes / int(total_size)) * 100)
 
 
 fish = EvilFish()
