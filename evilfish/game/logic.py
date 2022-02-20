@@ -37,6 +37,7 @@ class GameLogic:
         for move in data.history:
             self.game.push(move=chess.Move.from_uci(move))
 
+        logger.debug("play.data", history=data.history, fen=self.game.fen())
         logger.info("playing", id=data.id, variant=data.variant.value)
 
         return True
@@ -111,7 +112,8 @@ class GameLogic:
         logger.debug("game.engine.result", result=p_result)
 
         return schemas.GameEngineResponseSchema(move=p_result.move.uci(), score=self.last_score,
-                                                delay=trigger_result.delay)
+                                                delay=trigger_result.delay,
+                                                auto_move=self.strategy.type == strategy_schemas.StrategyType.rage)
 
 
 game_logic = GameLogic()

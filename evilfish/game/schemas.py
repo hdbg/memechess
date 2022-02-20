@@ -34,8 +34,7 @@ class GameMoveSchema(BaseModel):
     # fen: str
     # color: chess.Color
 
-    move: typing.Optional[str]
-    drop: typing.Optional[str]
+    move: str
 
     white_clock: typing.Optional[float] = 0.0
     black_clock: typing.Optional[float] = 0.0
@@ -49,3 +48,4 @@ class GameEngineResponseSchema(BaseModel):
     score: int
 
     delay: float
+    auto_move: bool = False

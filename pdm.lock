@@ -54,7 +54,7 @@ dependencies = [
 
 [[package]]
 name = "charset-normalizer"
-version = "2.0.10"
+version = "2.0.11"
 requires_python = ">=3.5.0"
 summary = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
 
@@ -160,7 +160,7 @@ summary = "multidict implementation"
 
 [[package]]
 name = "nuitka"
-version = "0.6.19.4"
+version = "0.6.19.6"
 summary = "Python compiler with full language support and CPython compatibility"
 
 [[package]]
@@ -203,7 +203,7 @@ summary = "Advanced Python dictionaries with dot notation access"
 
 [[package]]
 name = "rich"
-version = "11.1.0"
+version = "11.2.0"
 requires_python = ">=3.6.2,<4.0.0"
 summary = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
 dependencies = [
@@ -426,9 +426,9 @@ content_hash = "sha256:482ee9e423bbd8e617e27605bcdf38c4a0b757c21c03568ef1329ffe3
     {file = "cffi-1.15.0-cp39-cp39-win_amd64.whl", hash = "sha256:3773c4d81e6e818df2efbc7dd77325ca0dcb688116050fb2b3011218eda36139"},
     {file = "cffi-1.15.0.tar.gz", hash = "sha256:920f0d66a896c2d99f0adbb391f990a84091179542c205fa53ce5787aff87954"},
 ]
-"charset-normalizer 2.0.10" = [
-    {file = "charset_normalizer-2.0.10-py3-none-any.whl", hash = "sha256:cb957888737fc0bbcd78e3df769addb41fd1ff8cf950dc9e7ad7793f1bf44455"},
-    {file = "charset-normalizer-2.0.10.tar.gz", hash = "sha256:876d180e9d7432c5d1dfd4c5d26b72f099d503e8fcc0feb7532c9289be60fcbd"},
+"charset-normalizer 2.0.11" = [
+    {file = "charset_normalizer-2.0.11-py3-none-any.whl", hash = "sha256:2842d8f5e82a1f6aa437380934d5e1cd4fcf2003b06fed6940769c164a480a45"},
+    {file = "charset-normalizer-2.0.11.tar.gz", hash = "sha256:98398a9d69ee80548c762ba991a4728bfc3836768ed226b3945908d1a688371c"},
 ]
 "chess 1.8.0" = [
     {file = "chess-1.8.0-py3-none-any.whl", hash = "sha256:16fe017901201b93d73830c20ec7c36a329d2b22326f838d1bcfc55d3f63679c"},
@@ -600,8 +600,8 @@ content_hash = "sha256:482ee9e423bbd8e617e27605bcdf38c4a0b757c21c03568ef1329ffe3
     {file = "multidict-6.0.2-cp39-cp39-win_amd64.whl", hash = "sha256:4bae31803d708f6f15fd98be6a6ac0b6958fcf68fda3c77a048a4f9073704aae"},
     {file = "multidict-6.0.2.tar.gz", hash = "sha256:5ff3bd75f38e4c43f1f470f2df7a4d430b821c4ce22be384e1459cb57d6bb013"},
 ]
-"nuitka 0.6.19.4" = [
-    {file = "Nuitka-0.6.19.4.tar.gz", hash = "sha256:964ace59ec02fd67954d957a07a78ae02a32f0b56cf2c2266c1b4ce078d51fdf"},
+"nuitka 0.6.19.6" = [
+    {file = "Nuitka-0.6.19.6.tar.gz", hash = "sha256:132ee5174b19795a185c83bae91b13f657ea32446658652f2991eeafb031c14e"},
 ]
 "orjson 3.6.6" = [
     {file = "orjson-3.6.6-cp310-cp310-macosx_10_7_x86_64.whl", hash = "sha256:e4a7cad6c63306318453980d302c7c0b74c0cc290dd1f433bbd7d31a5af90cf1"},
@@ -682,9 +682,9 @@ content_hash = "sha256:482ee9e423bbd8e617e27605bcdf38c4a0b757c21c03568ef1329ffe3
     {file = "python_box-5.4.1-py3-none-any.whl", hash = "sha256:60ae9156de34cf92b899bd099580950df70a5b0813e67a3310a1cdd1976457fa"},
     {file = "python-box-5.4.1.tar.gz", hash = "sha256:b68e0f8abc86f3deda751b3390f64df64a0989459de51ba4db949662a7b4d8ac"},
 ]
-"rich 11.1.0" = [
-    {file = "rich-11.1.0-py3-none-any.whl", hash = "sha256:365ebcdbfb3aa8d4b0ed2490e0fbf7b886a39d14eb7ea5fb7aece950835e1eed"},
-    {file = "rich-11.1.0.tar.gz", hash = "sha256:43e03d8eec12e21beaecc22c828a41c4247356414a12d5879834863d4ad53816"},
+"rich 11.2.0" = [
+    {file = "rich-11.2.0-py3-none-any.whl", hash = "sha256:d5f49ad91fb343efcae45a2b2df04a9755e863e50413623ab8c9e74f05aee52b"},
+    {file = "rich-11.2.0.tar.gz", hash = "sha256:1a6266a5738115017bb64a66c59c717e7aa047b3ae49a011ede4abdeffc6536e"},
 ]
 "sniffio 1.2.0" = [
     {file = "sniffio-1.2.0-py3-none-any.whl", hash = "sha256:471b71698eac1c2112a40ce2752bb2f4a4814c22a54a3eed3676bc0f5ca9f663"},

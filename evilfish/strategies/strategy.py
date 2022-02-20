@@ -19,12 +19,15 @@ class Strategy:
     triggers: typing.List[schemas.TriggerScheme]
     priority: int
 
+    type: schemas.StrategyType
+
     def __init__(self, strategy: schemas.StrategyScheme):
         self.raw = strategy
         self.priority = strategy.priority
         self.triggers = strategy.triggers
 
         self.variants = strategy.variants
+        self.type = strategy.type
 
     def would_fire(self, var: schemas.TriggerVars):
         lhs_map = {
