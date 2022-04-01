@@ -2,9 +2,11 @@
 var framePtr = null;
 var excHandler = 0;
 var lastJSError = null;
-var NTI33555124 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
 var NTI33555128 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
 var NTI33555130 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
+var NTI33555113 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
+var NTI33555120 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
+var NTI33555122 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
 var NTI33554456 = {size: 0,kind: 31,base: null,node: null,finalizer: null};
 var NTI33555920 = {size: 0, kind: 18, base: null, node: null, finalizer: null};
 var NTI33555083 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
@@ -13,15 +15,12 @@ var NTI33554439 = {size: 0,kind: 28,base: null,node: null,finalizer: null};
 var NTI33554440 = {size: 0,kind: 29,base: null,node: null,finalizer: null};
 var NTI33555164 = {size: 0, kind: 22, base: null, node: null, finalizer: null};
 var NTI33555112 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
-var NTI33555113 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
-var NTI33555120 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
-var NTI33555122 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
-var NNI33555122 = {kind: 2, len: 0, offset: 0, typ: null, name: null, sons: []};
-NTI33555122.node = NNI33555122;
-var NNI33555120 = {kind: 2, len: 0, offset: 0, typ: null, name: null, sons: []};
-NTI33555120.node = NNI33555120;
-var NNI33555113 = {kind: 2, len: 0, offset: 0, typ: null, name: null, sons: []};
-NTI33555113.node = NNI33555113;
+var NTI33555114 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
+var NTI33555125 = {size: 0, kind: 17, base: null, node: null, finalizer: null};
+var NNI33555125 = {kind: 2, len: 0, offset: 0, typ: null, name: null, sons: []};
+NTI33555125.node = NNI33555125;
+var NNI33555114 = {kind: 2, len: 0, offset: 0, typ: null, name: null, sons: []};
+NTI33555114.node = NNI33555114;
 NTI33555164.base = NTI33555112;
 NTI33555165.base = NTI33555112;
 var NNI33555112 = {kind: 2, len: 5, offset: 0, typ: null, name: null, sons: [{kind: 1, offset: "parent", len: 0, typ: NTI33555164, name: "parent", sons: null}, 
@@ -33,22 +32,27 @@ NTI33555112.node = NNI33555112;
 var NNI33555083 = {kind: 2, len: 0, offset: 0, typ: null, name: null, sons: []};
 NTI33555083.node = NNI33555083;
 NTI33555112.base = NTI33555083;
-NTI33555113.base = NTI33555112;
-NTI33555120.base = NTI33555113;
-NTI33555122.base = NTI33555120;
+NTI33555114.base = NTI33555112;
+NTI33555125.base = NTI33555114;
 var NNI33555920 = {kind: 2, len: 3, offset: 0, typ: null, name: null, sons: [{kind: 1, offset: "Field0", len: 0, typ: NTI33554440, name: "Field0", sons: null}, 
 {kind: 1, offset: "Field1", len: 0, typ: NTI33554456, name: "Field1", sons: null}, 
 {kind: 1, offset: "Field2", len: 0, typ: NTI33554440, name: "Field2", sons: null}]};
 NTI33555920.node = NNI33555920;
+var NNI33555122 = {kind: 2, len: 0, offset: 0, typ: null, name: null, sons: []};
+NTI33555122.node = NNI33555122;
+var NNI33555120 = {kind: 2, len: 0, offset: 0, typ: null, name: null, sons: []};
+NTI33555120.node = NNI33555120;
+var NNI33555113 = {kind: 2, len: 0, offset: 0, typ: null, name: null, sons: []};
+NTI33555113.node = NNI33555113;
+NTI33555113.base = NTI33555112;
+NTI33555120.base = NTI33555113;
+NTI33555122.base = NTI33555120;
 var NNI33555130 = {kind: 2, len: 0, offset: 0, typ: null, name: null, sons: []};
 NTI33555130.node = NNI33555130;
 NTI33555130.base = NTI33555113;
 var NNI33555128 = {kind: 2, len: 0, offset: 0, typ: null, name: null, sons: []};
 NTI33555128.node = NNI33555128;
 NTI33555128.base = NTI33555113;
-var NNI33555124 = {kind: 2, len: 0, offset: 0, typ: null, name: null, sons: []};
-NTI33555124.node = NNI33555124;
-NTI33555124.base = NTI33555113;
 
 function makeNimstrLit(c_33556802) {
       var result = [];
@@ -56,13 +60,6 @@ function makeNimstrLit(c_33556802) {
     result[i] = c_33556802.charCodeAt(i);
   }
   return result;
-  
-
-  
-}
-
-function mnewString(len_33556894) {
-        return new Array(len_33556894);
   
 
   
@@ -168,6 +165,62 @@ function nimCopy(dest_33557141, src_33557142, ti_33557143) {
     }
 
   return result_33557152;
+
+}
+
+function mnewString(len_33556894) {
+        return new Array(len_33556894);
+  
+
+  
+}
+
+function addInt(a_33556941, b_33556942) {
+        var result = a_33556941 + b_33556942;
+    checkOverflowInt(result);
+    return result;
+  
+
+  
+}
+
+function chckRange(i_33557190, a_33557191, b_33557192) {
+      var Temporary1;
+
+  var result_33557193 = 0;
+
+  BeforeRet: do {
+      if (!(a_33557191 <= i_33557190)) Temporary1 = false; else {        Temporary1 = (i_33557190 <= b_33557192);      }    if (Temporary1) {
+    result_33557193 = i_33557190;
+    break BeforeRet;
+    }
+    else {
+    raiseRangeError();
+    }
+    
+  } while (false);
+
+  return result_33557193;
+
+}
+
+function chckIndx(i_33557185, a_33557186, b_33557187) {
+      var Temporary1;
+
+  var result_33557188 = 0;
+
+  BeforeRet: do {
+      if (!(a_33557186 <= i_33557185)) Temporary1 = false; else {        Temporary1 = (i_33557185 <= b_33557187);      }    if (Temporary1) {
+    result_33557188 = i_33557185;
+    break BeforeRet;
+    }
+    else {
+    raiseIndexError(i_33557185, a_33557186, b_33557187);
+    }
+    
+  } while (false);
+
+  return result_33557188;
 
 }
 
@@ -289,53 +342,15 @@ function raiseException(e_33556668, ename_33556669) {
   
 }
 
-function addInt(a_33556941, b_33556942) {
-        var result = a_33556941 + b_33556942;
-    checkOverflowInt(result);
-    return result;
-  
-
-  
-}
-
-function chckRange(i_33557190, a_33557191, b_33557192) {
-      var Temporary1;
-
-  var result_33557193 = 0;
-
-  BeforeRet: do {
-      if (!(a_33557191 <= i_33557190)) Temporary1 = false; else {        Temporary1 = (i_33557190 <= b_33557192);      }    if (Temporary1) {
-    result_33557193 = i_33557190;
-    break BeforeRet;
-    }
-    else {
-    raiseRangeError();
-    }
+function rawEcho() {
+          var buf = "";
+      for (var i = 0; i < arguments.length; ++i) {
+        buf += toJSStr(arguments[i]);
+      }
+      console.log(buf);
     
-  } while (false);
 
-  return result_33557193;
-
-}
-
-function chckIndx(i_33557185, a_33557186, b_33557187) {
-      var Temporary1;
-
-  var result_33557188 = 0;
-
-  BeforeRet: do {
-      if (!(a_33557186 <= i_33557185)) Temporary1 = false; else {        Temporary1 = (i_33557185 <= b_33557187);      }    if (Temporary1) {
-    result_33557188 = i_33557185;
-    break BeforeRet;
-    }
-    else {
-    raiseIndexError(i_33557185, a_33557186, b_33557187);
-    }
-    
-  } while (false);
-
-  return result_33557188;
-
+  
 }
 if (!Math.trunc) {
   Math.trunc = function(v) {
@@ -2542,6 +2557,9 @@ framePtr = F.prev;
 var F = {procname: "module api", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/api.nim", line: 0};
 framePtr = F;
 framePtr = F.prev;
+var F = {procname: "module api", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/api.nim", line: 0};
+framePtr = F;
+framePtr = F.prev;
 var F = {procname: "module loader", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/loader.nim", line: 0};
 framePtr = F;
 framePtr = F.prev;
@@ -3209,6 +3227,27 @@ var F = {procname: "module dom", prev: framePtr, filename: "/home/admiral/.choos
 framePtr = F;
 framePtr = F.prev;
 var F = {procname: "module dom", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/js/dom.nim", line: 0};
+framePtr = F;
+framePtr = F.prev;
+var F = {procname: "module shellcode", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/shellcode.nim", line: 0};
+framePtr = F;
+framePtr = F.prev;
+var F = {procname: "module ui", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/ui.nim", line: 0};
+framePtr = F;
+framePtr = F.prev;
+var F = {procname: "module ui", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/ui.nim", line: 0};
+framePtr = F;
+framePtr = F.prev;
+var F = {procname: "module ui", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/ui.nim", line: 0};
+framePtr = F;
+framePtr = F.prev;
+var F = {procname: "module ui", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/ui.nim", line: 0};
+framePtr = F;
+framePtr = F.prev;
+var F = {procname: "module ui", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/ui.nim", line: 0};
+framePtr = F;
+framePtr = F.prev;
+var F = {procname: "module ui", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/ui.nim", line: 0};
 framePtr = F;
 framePtr = F.prev;
 var F = {procname: "module shellcode", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/shellcode.nim", line: 0};
@@ -3280,6 +3319,113 @@ function nimCopyAux(dest_33557145, src_33557146, n_33557147) {
   
 }
 
+function raiseOverflow() {
+    raiseException({message: makeNimstrLit("over- or underflow"), parent: null, m_type: NTI33555122, name: null, trace: [], up: null}, "OverflowDefect");
+
+  
+}
+
+function checkOverflowInt(a_33556939) {
+        if (a_33556939 > 2147483647 || a_33556939 < -2147483648) raiseOverflow();
+  
+
+  
+}
+
+function raiseRangeError() {
+    raiseException({message: makeNimstrLit("value out of range"), parent: null, m_type: NTI33555130, name: null, trace: [], up: null}, "RangeDefect");
+
+  
+}
+
+function raiseIndexError(i_33556755, a_33556756, b_33556757) {
+    var Temporary1;
+
+    if ((b_33556757 < a_33556756)) {
+    Temporary1 = makeNimstrLit("index out of bounds, the container is empty");
+    }
+    else {
+    Temporary1 = (makeNimstrLit("index ") || []).concat(HEX24_318767107(i_33556755) || [],makeNimstrLit(" not in ") || [],HEX24_318767107(a_33556756) || [],makeNimstrLit(" .. ") || [],HEX24_318767107(b_33556757) || []);
+    }
+    
+    raiseException({message: nimCopy(null, Temporary1, NTI33554439), parent: null, m_type: NTI33555128, name: null, trace: [], up: null}, "IndexDefect");
+
+  
+}
+
+function addChars_251658415(result_251658417, result_251658417_Idx, x_251658418, start_251658419, n_251658420) {
+  var F = {procname: "addChars.addChars", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/std/private/digitsutils.nim", line: 0};
+  framePtr = F;
+    F.line = 43;
+    var old_251658421 = (result_251658417[result_251658417_Idx]).length;
+    F.line = 44;
+    (result_251658417[result_251658417_Idx].length = chckRange(addInt(old_251658421, n_251658420), 0, 2147483647));
+    Label1: do {
+      F.line = 46;
+      var iHEX60gensym4_251658435 = 0;
+      F.line = 119;
+      var i_469762171 = 0;
+      Label2: do {
+        F.line = 120;
+          Label3: while (true) {
+          if (!(i_469762171 < n_251658420)) break Label3;
+            F.line = 49;
+            iHEX60gensym4_251658435 = i_469762171;
+            F.line = 49;
+            result_251658417[result_251658417_Idx][chckIndx(addInt(old_251658421, iHEX60gensym4_251658435), 0, (result_251658417[result_251658417_Idx]).length - 1)] = x_251658418.charCodeAt(chckIndx(addInt(start_251658419, iHEX60gensym4_251658435), 0, (x_251658418).length - 1));
+            F.line = 122;
+            i_469762171 = addInt(i_469762171, 1);
+          }
+      } while (false);
+    } while (false);
+  framePtr = F.prev;
+
+  
+}
+
+function addChars_251658411(result_251658413, result_251658413_Idx, x_251658414) {
+  var F = {procname: "addChars.addChars", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/std/private/digitsutils.nim", line: 0};
+  framePtr = F;
+    F.line = 55;
+    addChars_251658415(result_251658413, result_251658413_Idx, x_251658414, 0, ((x_251658414) == null ? 0 : (x_251658414).length));
+  framePtr = F.prev;
+
+  
+}
+
+function addInt_251658436(result_251658437, result_251658437_Idx, x_251658438) {
+  var F = {procname: "digitsutils.addInt", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/std/private/digitsutils.nim", line: 0};
+  framePtr = F;
+    F.line = 113;
+    addChars_251658411(result_251658437, result_251658437_Idx, ((x_251658438) + ""));
+  framePtr = F.prev;
+
+  
+}
+
+function addInt_251658457(result_251658458, result_251658458_Idx, x_251658459) {
+  var F = {procname: "digitsutils.addInt", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/std/private/digitsutils.nim", line: 0};
+  framePtr = F;
+    F.line = 117;
+    addInt_251658436(result_251658458, result_251658458_Idx, x_251658459);
+  framePtr = F.prev;
+
+  
+}
+
+function HEX24_318767107(x_318767108) {
+  var result_318767109 = [[]];
+
+  var F = {procname: "dollars.$", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/system/dollars.nim", line: 0};
+  framePtr = F;
+    F.line = 12;
+    addInt_251658457(result_318767109, 0, x_318767108);
+  framePtr = F.prev;
+
+  return result_318767109[0];
+
+}
+
 function auxWriteStackTrace_33556560(f_33556561) {
           var Temporary3;
 
@@ -3316,13 +3462,13 @@ function auxWriteStackTrace_33556560(f_33556561) {
     
     Label6: do {
       var j_33556603 = 0;
-      var colontmp__469762174 = 0;
-      colontmp__469762174 = (i_33556571 - 1);
-      var res_469762176 = colontmp__469762174;
+      var colontmp__469762163 = 0;
+      colontmp__469762163 = (i_33556571 - 1);
+      var res_469762165 = colontmp__469762163;
       Label7: do {
           Label8: while (true) {
-          if (!(0 <= res_469762176)) break Label8;
-            j_33556603 = res_469762176;
+          if (!(0 <= res_469762165)) break Label8;
+            j_33556603 = res_469762165;
             result_33556562[0].push.apply(result_33556562[0], cstrToNimstr(tempFrames_33556573[j_33556603].Field2));;
             if ((0 < tempFrames_33556573[j_33556603].Field1)) {
             result_33556562[0].push.apply(result_33556562[0], makeNimstrLit("("));;
@@ -3338,7 +3484,7 @@ function auxWriteStackTrace_33556560(f_33556561) {
             result_33556562[0].push.apply(result_33556562[0], makeNimstrLit(" at "));;
             add_33556420(result_33556562, 0, tempFrames_33556573[j_33556603].Field0);
             result_33556562[0].push.apply(result_33556562[0], makeNimstrLit("\x0A"));;
-            res_469762176 -= 1;
+            res_469762165 -= 1;
           }
       } while (false);
     } while (false);
@@ -3401,186 +3547,95 @@ function unhandledException(e_33556664) {
   
 }
 
-function raiseOverflow() {
-    raiseException({message: makeNimstrLit("over- or underflow"), parent: null, m_type: NTI33555122, name: null, trace: [], up: null}, "OverflowDefect");
-
-  
-}
-
-function checkOverflowInt(a_33556939) {
-        if (a_33556939 > 2147483647 || a_33556939 < -2147483648) raiseOverflow();
-  
-
-  
-}
-
-function raiseRangeError() {
-    raiseException({message: makeNimstrLit("value out of range"), parent: null, m_type: NTI33555130, name: null, trace: [], up: null}, "RangeDefect");
-
-  
-}
-
-function addChars_251658415(result_251658417, result_251658417_Idx, x_251658418, start_251658419, n_251658420) {
-  var F = {procname: "addChars.addChars", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/std/private/digitsutils.nim", line: 0};
+function cmdHandler_939524109(ui_939524110, cmd_939524111) {
+  var F = {procname: "ui.cmdHandler", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/ui.nim", line: 0};
   framePtr = F;
-    F.line = 43;
-    var old_251658421 = (result_251658417[result_251658417_Idx]).length;
-    F.line = 44;
-    (result_251658417[result_251658417_Idx].length = chckRange(addInt(old_251658421, n_251658420), 0, 2147483647));
-    Label1: do {
-      F.line = 46;
-      var iHEX60gensym4_251658435 = 0;
-      F.line = 119;
-      var i_469762169 = 0;
-      Label2: do {
-        F.line = 120;
-          Label3: while (true) {
-          if (!(i_469762169 < n_251658420)) break Label3;
-            F.line = 49;
-            iHEX60gensym4_251658435 = i_469762169;
-            F.line = 49;
-            result_251658417[result_251658417_Idx][chckIndx(addInt(old_251658421, iHEX60gensym4_251658435), 0, (result_251658417[result_251658417_Idx]).length - 1)] = x_251658418.charCodeAt(chckIndx(addInt(start_251658419, iHEX60gensym4_251658435), 0, (x_251658418).length - 1));
-            F.line = 122;
-            i_469762169 = addInt(i_469762169, 1);
-          }
-      } while (false);
-    } while (false);
+    F.line = 14;
+    rawEcho(cstrToNimstr(cmd_939524111));
   framePtr = F.prev;
 
   
 }
 
-function addChars_251658411(result_251658413, result_251658413_Idx, x_251658414) {
-  var F = {procname: "addChars.addChars", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/std/private/digitsutils.nim", line: 0};
-  framePtr = F;
-    F.line = 55;
-    addChars_251658415(result_251658413, result_251658413_Idx, x_251658414, 0, ((x_251658414) == null ? 0 : (x_251658414).length));
-  framePtr = F.prev;
+function newUI_939524112() {
+    
+function initTerm_939524126(d_939524129, undefined_939524130) {
+        
+function HEX3Aanonymous_939524132(cmd_939524133) {
+          var F = {procname: "initTerm.:anonymous", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/ui.nim", line: 0};
+          framePtr = F;
+            F.line = 39;
+            cmdHandler_939524109(this_939524125, cmd_939524133);
+          framePtr = F.prev;
 
-  
-}
+          
+        }
 
-function addInt_251658436(result_251658437, result_251658437_Idx, x_251658438) {
-  var F = {procname: "digitsutils.addInt", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/std/private/digitsutils.nim", line: 0};
-  framePtr = F;
-    F.line = 113;
-    addChars_251658411(result_251658437, result_251658437_Idx, ((x_251658438) + ""));
-  framePtr = F.prev;
+      var F = {procname: "newUI.initTerm", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/ui.nim", line: 0};
+      framePtr = F;
+        F.line = 37;
+        var q_939524131 = d_939524129(".fish-gui");
+        q_939524131.terminal((HEX3Aanonymous_939524132), (fishTermCf_939524124));
+      framePtr = F.prev;
 
-  
-}
-
-function addInt_251658457(result_251658458, result_251658458_Idx, x_251658459) {
-  var F = {procname: "digitsutils.addInt", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/std/private/digitsutils.nim", line: 0};
-  framePtr = F;
-    F.line = 117;
-    addInt_251658436(result_251658458, result_251658458_Idx, x_251658459);
-  framePtr = F.prev;
-
-  
-}
-
-function HEX24_318767107(x_318767108) {
-  var result_318767109 = [[]];
-
-  var F = {procname: "dollars.$", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/system/dollars.nim", line: 0};
-  framePtr = F;
-    F.line = 12;
-    addInt_251658457(result_318767109, 0, x_318767108);
-  framePtr = F.prev;
-
-  return result_318767109[0];
-
-}
-
-function raiseIndexError(i_33556755, a_33556756, b_33556757) {
-    var Temporary1;
-
-    if ((b_33556757 < a_33556756)) {
-    Temporary1 = makeNimstrLit("index out of bounds, the container is empty");
+      
     }
-    else {
-    Temporary1 = (makeNimstrLit("index ") || []).concat(HEX24_318767107(i_33556755) || [],makeNimstrLit(" not in ") || [],HEX24_318767107(a_33556756) || [],makeNimstrLit(" .. ") || [],HEX24_318767107(b_33556757) || []);
+
+  var result_939524113 = null;
+
+  var F = {procname: "ui.newUI", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/ui.nim", line: 0};
+  framePtr = F;
+    F.line = 17;
+    F.line = 17;
+    result_939524113 = ({anchor: null});
+    F.line = 19;
+    var ancestorRaw_939524117 = document.getElementsByClassName("game__meta");
+    if (!(((ancestorRaw_939524117).length == 1))) {
+    F.line = 22;
+    raiseException({message: makeNimstrLit("Can\'t find ui root"), parent: null, m_type: NTI33555125, name: null, trace: [], up: null}, "ValueError");
     }
     
-    raiseException({message: nimCopy(null, Temporary1, NTI33554439), parent: null, m_type: NTI33555128, name: null, trace: [], up: null}, "IndexDefect");
-
-  
-}
-
-function sysFatal_218103842(message_218103845) {
-  var F = {procname: "sysFatal.sysFatal", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/system/fatal.nim", line: 0};
-  framePtr = F;
-    F.line = 53;
-    raiseException({message: nimCopy(null, message_218103845, NTI33554439), m_type: NTI33555124, parent: null, name: null, trace: [], up: null}, "AssertionDefect");
+    F.line = 24;
+    var ancestor_939524123 = ancestorRaw_939524117[chckIndx(0, 0, (ancestorRaw_939524117).length - 1)];
+    F.line = 26;
+    result_939524113.anchor = document.createElement("div");
+    F.line = 27;
+    result_939524113.anchor.setAttribute("class", "fish-gui");
+    F.line = 29;
+    ancestor_939524123.appendChild(result_939524113.anchor);
+    F.line = 31;
+    var fishTermCf_939524124 = {greetings: "Welcome to the evilfish control panel", name: "evilfish", height: 200, width: 450, prompt: "fish> "};
+    F.line = 34;
+    var this_939524125 = result_939524113;
+    F.line = 41;
+    jQuery(initTerm_939524126);
+    result_939524113 = result_939524113;
   framePtr = F.prev;
 
-  
+  return result_939524113;
+
 }
 
-function raiseAssert_218103840(msg_218103841) {
-  var F = {procname: "assertions.raiseAssert", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/system/assertions.nim", line: 0};
-  framePtr = F;
-    F.line = 28;
-    sysFatal_218103842(msg_218103841);
-  framePtr = F.prev;
-
-  
-}
-
-function failedAssertImpl_218103864(msg_218103865) {
-  var F = {procname: "assertions.failedAssertImpl", prev: framePtr, filename: "/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/system/assertions.nim", line: 0};
-  framePtr = F;
-    F.line = 38;
-    raiseAssert_218103840(msg_218103865);
-  framePtr = F.prev;
-
-  
-}
-
-function newShellCode_872415287(ctrl_872415288, opts_872415289) {
-  var result_872415290 = null;
+function newShellCode_872415288(ctrl_872415289, opts_872415290) {
+  var result_872415291 = null;
 
   var F = {procname: "shellcode.newShellCode", prev: framePtr, filename: "/home/admiral/Code/Nim/evilfish/src/client/shellcode.nim", line: 0};
   framePtr = F;
-    F.line = 36;
-    result_872415290 = ({name: [], opts: null, rawCtrl: null, rawOpts: null});
     F.line = 38;
-    result_872415290.opts = (opts_872415289.data);
+    result_872415291 = ({ui: null, opts: null, rawCtrl: null, rawOpts: null});
     F.line = 40;
-    result_872415290.rawCtrl = ctrl_872415288;
-    F.line = 41;
-    result_872415290.rawOpts = opts_872415289;
-    Label1: do {
-      F.line = 43;
-      var step_872415328 = ({fen: null, ply: 0, san: ({val: null, has: false}), uci: ({val: null, has: false})});
-      F.line = 235;
-      var i_469762162 = 0;
-      F.line = 236;
-      var L_469762163 = (result_872415290.opts.steps).length;
-      Label2: do {
-        F.line = 237;
-          Label3: while (true) {
-          if (!(i_469762162 < L_469762163)) break Label3;
-            F.line = 43;
-            step_872415328 = result_872415290.opts.steps[chckIndx(i_469762162, 0, (result_872415290.opts.steps).length - 1)];
-            F.line = 43;
-            console.log(step_872415328.ply);
-            F.line = 239;
-            i_469762162 = addInt(i_469762162, 1);
-            if (!(((result_872415290.opts.steps).length == L_469762163))) {
-            F.line = 240;
-            failedAssertImpl_218103864(makeNimstrLit("/home/admiral/.choosenim/toolchains/nim-1.6.4/lib/system/iterators.nim(240, 11) `len(a) == L` the length of the seq changed while iterating over it"));
-            }
-            
-          }
-      } while (false);
-    } while (false);
-    F.line = 46;
-    console.log(result_872415290);
+    result_872415291.opts = (opts_872415290.data);
+    F.line = 42;
+    result_872415291.rawCtrl = ctrl_872415289;
+    F.line = 43;
+    result_872415291.rawOpts = opts_872415290;
+    F.line = 45;
+    result_872415291.ui = newUI_939524112();
+    F.line = 47;
+    console.log(result_872415291);
   framePtr = F.prev;
 
-  return result_872415290;
+  return result_872415291;
 
 }
 
@@ -3608,7 +3663,7 @@ function HEX3Aanonymous_469762073(opts_469762074) {
         F.line = 30;
         var resp_469762076 = lrCopy_469762062[0](opts_469762074);
         F.line = 32;
-        window.Bot = newShellCode_872415287(resp_469762076.moveOn.ctrl, opts_469762074);
+        window.Bot = newShellCode_872415288(resp_469762076.moveOn.ctrl, opts_469762074);
         result_469762075 = resp_469762076;
       framePtr = F.prev;
 

