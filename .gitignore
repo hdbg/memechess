@@ -4,3 +4,4 @@
 /cli.exe
 /__pypackages__/
 /fish/
+/src/shellcode.js
