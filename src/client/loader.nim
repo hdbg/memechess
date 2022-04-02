@@ -1,5 +1,5 @@
 import std/[jsffi, jsconsole]
-import api
+import api/`object`
 import shellcode
 
 

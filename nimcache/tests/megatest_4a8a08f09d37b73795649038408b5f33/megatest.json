@@ -1,0 +1,26 @@
+{
+  "cacheVersion": "D20210525T193831",
+  "outputFile": "/home/admiral/Code/Nim/evilfish/tests/megatest",
+  "compile": [],
+  "link": [
+    "/home/admiral/Code/Nim/evilfish/nimcache/tests/megatest_4a8a08f09d37b73795649038408b5f33/stdlib_digitsutils.nim.c.o",
+    "/home/admiral/Code/Nim/evilfish/nimcache/tests/megatest_4a8a08f09d37b73795649038408b5f33/stdlib_dollars.nim.c.o",
+    "/home/admiral/Code/Nim/evilfish/nimcache/tests/megatest_4a8a08f09d37b73795649038408b5f33/stdlib_system.nim.c.o",
+    "/home/admiral/Code/Nim/evilfish/nimcache/tests/megatest_4a8a08f09d37b73795649038408b5f33/@mmegatest.nim.c.o"
+  ],
+  "linkcmd": "gcc   -o /home/admiral/Code/Nim/evilfish/tests/megatest /home/admiral/Code/Nim/evilfish/nimcache/tests/megatest_4a8a08f09d37b73795649038408b5f33/stdlib_digitsutils.nim.c.o /home/admiral/Code/Nim/evilfish/nimcache/tests/megatest_4a8a08f09d37b73795649038408b5f33/stdlib_dollars.nim.c.o /home/admiral/Code/Nim/evilfish/nimcache/tests/megatest_4a8a08f09d37b73795649038408b5f33/stdlib_system.nim.c.o /home/admiral/Code/Nim/evilfish/nimcache/tests/megatest_4a8a08f09d37b73795649038408b5f33/@mmegatest.nim.c.o    -ldl",
+  "extraCmds": [],
+  "configFiles": [
+    "/home/admiral/.choosenim/toolchains/nim-1.6.4/config/nim.cfg",
+    "/home/admiral/.choosenim/toolchains/nim-1.6.4/config/config.nims",
+    "/home/admiral/Code/Nim/evilfish/config.nims",
+    "/home/admiral/Code/Nim/evilfish/tests/config.nims"
+  ],
+  "stdinInput": false,
+  "projectIsCmd": false,
+  "cmdInput": "",
+  "currentDir": "/home/admiral/Code/Nim/evilfish",
+  "cmdline": "",
+  "depfiles": [],
+  "nimexe": ""
+}

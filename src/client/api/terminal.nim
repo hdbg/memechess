@@ -1,5 +1,5 @@
 import std/[dom, jsffi, options]
-import api
+import jquery
 
 type
   TerminalEchoOptions* = ref object

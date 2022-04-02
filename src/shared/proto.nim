@@ -17,10 +17,10 @@ type
   ChessTime* = enum ctUltrabullet, ctBullet, ctBlitz, ctRapid
 
   ChessStep* = object
-    fen*: cstring
-    ply*: cuint
+    fen*: string
+    ply*: uint
 
-    san*, uci*: Option[cstring]
+    san*, uci*: Option[string]
 
   ChessGameStart* = object
     start*: seq[ChessStep]
