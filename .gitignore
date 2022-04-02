@@ -1,7 +1,4 @@
-/cli.build/
-/cli.dist/
-/cli.onefile-build/
-/cli.exe
-/__pypackages__/
-/fish/
+nimcache/
+evilfish
+outputGotten.txt
 /src/shellcode.js
