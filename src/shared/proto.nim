@@ -29,3 +29,9 @@ type
     time*: ChessTime
 
     clock*: tuple[white, black, inc: float]
+
+  TerminalCmd* = object
+    input*: string
+
+  TerminalEcho* = object # TODO: Some echo options info
+    output*: string

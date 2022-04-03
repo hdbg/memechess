@@ -1,13 +1,11 @@
-import std/[asynchttpserver, asyncdispatch,asyncfutures, httpclient, strutils]
+import std/[asynchttpserver, asyncdispatch, asyncfutures, httpclient, strutils]
 import chronicles
 import std/[httpcore, uri]
 import customsocket
-
+import chess/server
 import injector
 
-const
-  interceptPort = 8080
-  chessPort = 9243
+const interceptPort = 8080
 
 proc intercept(req: Request) {.async gcsafe.} =
   debug "intercept.received", req = req
@@ -76,16 +74,21 @@ proc wsocket(req: Request) {.async gcsafe.} =
   liSck.close()
   sck.close()
 
+proc startChess(req: Request) {.async.} =
+  var fs = new FishServer(req)
+  asyncCheck req.listen()
+
 proc dispatch(req: Request) {.async.} =
   let path = $req.url
 
   if "v5" in path or "v6" in path: await wsocket(req)
+  elif "fish" in path: await startChess(req)
   else: await intercept(req)
 
 proc main {.async.} =
   var server = newAsyncHttpServer()
 
-  server.listen(Port(interceptPort)) # or Port(8080) to hardcode the standard HTTP port.
+  server.listen(Port(interceptPort))
   let port = server.getPort
 
   info "evilfish.serve", port = port.int
