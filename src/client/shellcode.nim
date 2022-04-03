@@ -29,7 +29,7 @@ type
 
   ShellCode = ref object
     terminal: Terminal
-    fh: FramesHandle
+    fh: FramesHandler
     ws: WebSocket
 
     opts: RoundOpts
@@ -41,8 +41,6 @@ converter toStep(x: JsObject): RoundStep = to(x, RoundStep)
 
 proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
   new result
-
-  result.fh = newFramesHandler()
 
   result.opts = to(opts.data, RoundOpts)
 
@@ -57,15 +55,15 @@ proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
 
     var ancestor = ancestorRaw[0]
 
-    result.anchor = document.createElement("div")
-    result.anchor.setAttribute("id", "fish-gui")
+    var anchor = document.createElement("div")
+    anchor.setAttribute("id", "fish-gui")
 
-    ancestor.appendChild(result.anchor)
+    ancestor.appendChild(anchor)
 
-    let terminalConfig = initTerminalConfig(200, 100)
+    let terminalConfig = TerminalCfg(height:200, width:100)
 
-    proc onCmd(cmd: cstring) =
-      var data = framify(TerminalInput(input:cmd))
+    proc onCmd(cmd: string) =
+      var data = framify(TerminalInput(input: cmd)).cstring
       result.ws.send data
 
     result.terminal = newTerminal("#fish-gui".toJs, onCmd ,terminalConfig)
@@ -73,6 +71,6 @@ proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
   result.ws = newWebsocket("ws://localhost:8080/fish")
 
   result.ws.onMessage = proc(e: MessageEvent) =
-    result.fh.handle(e.data)
+    result.fh.handle($e.data)
 
   console.log(result)

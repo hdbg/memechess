@@ -30,8 +30,8 @@ type
 
     clock*: tuple[white, black, inc: float]
 
-  TerminalCmd* = object
+  TerminalInput* = object
     input*: string
 
-  TerminalEcho* = object # TODO: Some echo options info
+  TerminalOutput* = object # TODO: Some echo options info
     output*: string

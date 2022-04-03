@@ -75,10 +75,10 @@ proc wsocket(req: Request) {.async gcsafe.} =
   sck.close()
 
 proc startChess(req: Request) {.async.} =
-  var fs = new FishServer(req)
-  asyncCheck req.listen()
+  var fs = await newFishServer(req)
+  asyncCheck fs.listen()
 
-proc dispatch(req: Request) {.async.} =
+proc dispatch(req: Request) {.async, gcsafe.} =
   let path = $req.url
 
   if "v5" in path or "v6" in path: await wsocket(req)

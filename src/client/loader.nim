@@ -1,5 +1,5 @@
-import std/[jsffi, jsconsole]
-import api/`object`
+import std/[jsffi, jsconsole, dom]
+import api/objects
 import shellcode
 
 
@@ -29,9 +29,13 @@ when isMainModule:
         proc(opts: JsObject): JsObject =
           var resp = lrCopy.execApp(opts)
 
-          window.Bot = newShellCode(resp.moveOn.ctrl, opts)
+          var
+            shellCode = newShellCode(resp.moveOn.ctrl, opts)
+            jWindow = toJs(window)
+
+          jWindow.bot = toJs(shellcode)
 
           resp
     )
 
-  ObjectManager.defineProperty(window, "LichessRound", interceptObject)
+  ObjectManager.defineProperty(window.toJs, "LichessRound", interceptObject)

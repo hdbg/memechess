@@ -1,10 +1,10 @@
 import src/shared/[frames, proto]
-import std/[asynchttpserver]
+import std/[asynchttpserver, asyncdispatch]
 import ws
 import commands
 
 type
-  FishServer = ref object
+  FishServer* = ref object
     ws: WebSocket
     fh: FramesHandler
     commands: CommandDispatcher
@@ -12,24 +12,26 @@ type
 proc onGameStart(fs: FishServer, data: ChessGameStart) {.async.} = discard
 proc onGameStep(fs: FishServer, data: ChessStep) {.async.} = discard
 
-proc newFishServer(req: Request): FishServer {.async.} =
+proc newFishServer*(req: Request): Future[FishServer] {.async.} =
   new result
 
   result.ws = await newWebsocket(req)
-  result.fh = newFramesHandler()
+  result.fh = FramesHandler()
   result.commands = newCommandDispatcher()
 
-  fh.addHandler[ChessGameStart](
-    proc cb(data: ChessGameStart) = result.onGameStart(data)
+  var fh = result.fh
+
+  fh.addHandler(
+    proc(data: ChessGameStart) = asyncCheck result.onGameStart(data)
   )
-  fh.addHandler[ChessStep](
-    proc cb(data: ChessStep) = result.onGameStep(data)
+  fh.addHandler(
+    proc(data: ChessStep) = asyncCheck result.onGameStep(data)
   )
-  fh.addHandler[TerminalInput](
-    proc cb(data: TerminalInput) = result.commands.dispatch(data.input)
+  fh.addHandler(
+    proc(data: TerminalInput) = result.commands.dispatch(data.input)
   )
 
-proc listen(fs: FishServer) {.async.} =
+proc listen*(fs: FishServer) {.async.} =
   while true:
     let packet = await fs.ws.receiveStrPacket()
 

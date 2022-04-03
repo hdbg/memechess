@@ -22,7 +22,7 @@ type
     params: seq[CommandParameter]
     callback: proc(ctx: CommandContext)
 
-  CommandDispatcher = ref object
+  CommandDispatcher* = ref object
     commands: seq[TerminalCommand]
 
 
