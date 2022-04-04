@@ -1,5 +1,5 @@
 import zippy
-import std/[strutils, strformat, httpclient, tables]
+import std/[strutils, strformat, httpclient, tables, asyncdispatch]
 import chronicles
 
 proc replaceRange(target: var string, begin, ending, content: string) =
@@ -32,12 +32,14 @@ static:
 
 const shellCode = staticRead"shellcode.js"
 
-proc inject*(resp: Response): string =
+proc inject*(resp: AsyncResponse): Future[string] {.async.} =
+  let body = await resp.body()
+
   if resp.headers.hasKey "content-encoding":
     const fmtTable = {"gzip": dfGzip, "deflate": dfDeflate, "zlib":dfZlib}.toTable
 
-    result = uncompress(resp.body, fmtTable[resp.headers["content-encoding"]])
-  else: result = resp.body
+    result = uncompress(body, fmtTable[resp.headers["content-encoding"]])
+  else: result = body
 
   result.replaceRange "<meta http-equiv=", ">", ""
   result.replaceRange "socket0.lichess.org", "socket5.lichess.org", "localhost:8080"

@@ -12,7 +12,7 @@ type
 proc onGameStart(fs: FishServer, data: ChessGameStart) {.async.} = discard
 proc onGameStep(fs: FishServer, data: ChessStep) {.async.} = discard
 
-proc newFishServer*(req: Request): Future[FishServer] {.async.} =
+proc newFishServer*(req: Request): Future[FishServer] {.async, gcsafe .} =
   new result
 
   result.ws = await newWebsocket(req)
@@ -31,7 +31,7 @@ proc newFishServer*(req: Request): Future[FishServer] {.async.} =
     proc(data: TerminalInput) = result.commands.dispatch(data.input)
   )
 
-proc listen*(fs: FishServer) {.async.} =
+proc listen*(fs: FishServer) {.async, gcsafe.} =
   while true:
     let packet = await fs.ws.receiveStrPacket()
 

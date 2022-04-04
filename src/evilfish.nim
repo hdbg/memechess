@@ -14,18 +14,18 @@ proc intercept(req: Request) {.async gcsafe.} =
     domain = "https://lichess.org"
     charSize = sizeof char
 
-  let http = newHttpClient()
+  let http = newAsyncHttpClient()
 
   var headers = req.headers
   headers["host"] = "lichess.org"
 
-  let resp = http.request(domain & uri.`$`(req.url), httpMethod = req.reqMethod,
+  let resp = await http.request(domain & uri.`$`(req.url), httpMethod = req.reqMethod,
       headers = headers, body = req.body)
 
   debug "lichess.answer", status = resp.status, headers = resp.headers
 
   var
-    body = inject resp
+    body = await inject(resp)
     respHeaders = resp.headers
 
   respHeaders["content-length"] = $(body.len * charSize)
@@ -74,7 +74,7 @@ proc wsocket(req: Request) {.async gcsafe.} =
   liSck.close()
   sck.close()
 
-proc startChess(req: Request) {.async.} =
+proc startChess(req: Request) {.async, gcsafe.} =
   var fs = await newFishServer(req)
   asyncCheck fs.listen()
 

@@ -60,7 +60,7 @@ proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
 
     ancestor.appendChild(anchor)
 
-    let terminalConfig = TerminalCfg(height:200, width:100)
+    let terminalConfig = TerminalCfg(height:100, width:300)
 
     proc onCmd(cmd: string) =
       var data = framify(TerminalInput(input: cmd)).cstring
@@ -69,7 +69,6 @@ proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
     result.terminal = newTerminal("#fish-gui".toJs, onCmd ,terminalConfig)
 
   result.ws = newWebsocket("ws://localhost:8080/fish")
-
   result.ws.onMessage = proc(e: MessageEvent) =
     result.fh.handle($e.data)
 
