@@ -5,4 +5,4 @@ type
   JqCallback* = proc(d:JqDollar, undefined: JsObject)
 
 proc jQuery*(callback: JqCallback) {.importjs: "jQuery(#)".}
-proc jq*(selector: JsObject): JsObject {.importjs: "$$(#)".}
+proc `$$`*(selector: JsObject): JsObject {.importjs: "jQuery(#)".}

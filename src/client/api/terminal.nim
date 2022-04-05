@@ -1,4 +1,4 @@
-import std/[dom, jsffi, options]
+import std/[dom, jsffi, options, jsconsole]
 import jquery
 
 type
@@ -27,7 +27,9 @@ proc newTerminal*(selector: JsObject, callback: proc(cmd: string),
     q.terminal(callback, cfg)
   )
 
-  result = to(jq(selector.toJs).terminal(), Terminal)
+  var raw = $$(selector)
+
+  result = to(raw.terminal(), Terminal)
 
 when false:
   {.push nodecl.}

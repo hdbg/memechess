@@ -35,3 +35,6 @@ type
 
   TerminalOutput* = object # TODO: Some echo options info
     output*: string
+
+  Ping* = object
+  PingResponse* = object

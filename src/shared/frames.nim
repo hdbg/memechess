@@ -1,4 +1,4 @@
-import std/[json, tables]
+import std/[json, tables, asyncfutures]
 
 type
   HandlerCallback = proc(data: string)
@@ -19,6 +19,18 @@ proc addHandler*[T](fh: FramesHandler, cb: proc(data: T)) =
       decoded = json.to(raw, T)
 
     cb(decoded)
+
+  fh.handlers[kind] = decode
+
+proc addHandler*[T](fh: FramesHandler, cb: proc(data: T): Future[void]) =
+  var kind = $(T)
+
+  proc decode(data: string) =
+    var
+      raw = parseJson(data)
+      decoded = json.to(raw, T)
+
+    asyncCheck cb(decoded)
 
   fh.handlers[kind] = decode
 
