@@ -75,12 +75,16 @@ proc wsocket(req: Request) {.async gcsafe.} =
   sck.close()
 
 proc startChess(req: Request) {.async, gcsafe.} =
-  try:
-    var fs = await newFishServer(req)
-    asyncCheck fs.listen()
-  except WebSocketClosedError as e:
-    error "nigga.we_are_fucked", e=repr(e)
-    echo e.msg
+  var
+    chessSocket = await newWebsocket(req)
+    server = newFishServer(chessSocket)
+
+  await chessSocket.send("test")
+  while chessSocket.readyState == Open:
+      let msg = await chessSocket.receiveStrPacket()
+      server.handle(msg)
+
+
 
 proc dispatch(req: Request) {.async, gcsafe.} =
   let path = $req.url

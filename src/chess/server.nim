@@ -6,25 +6,24 @@ import chronicles
 
 type
   FishServer* = ref object
-    ws: WebSocket
-    fh: FramesHandler
+    proto: FramesHandler
     commands: CommandDispatcher
+    conn: WebSocket
 
 proc onGameStart(fs: FishServer, data: ChessGameStart) {.async.} = discard
 proc onGameStep(fs: FishServer, data: ChessStep) {.async.} = discard
-proc onPing(fs: FishServer) {.async.} = await fs.ws.send(framify(PingResponse()))
+proc onPing(fs: FishServer) {.async.} = await fs.conn.send(framify(PingResponse()))
 
-proc newFishServer*(req: Request): Future[FishServer] {.async, gcsafe .} =
+proc newFishServer*(conn: WebSocket): FishServer {.gcsafe.} =
   new result
 
-  result.ws = await newWebsocket(req)
-
-  result.fh = FramesHandler()
+  result.proto = FramesHandler()
   result.commands = newCommandDispatcher()
+  result.conn = conn
 
   var
     that = result
-    fh = result.fh
+    fh = result.proto
 
   fh.addHandler(
     proc(data: ChessGameStart) = asyncCheck that.onGameStart(data)
@@ -39,18 +38,4 @@ proc newFishServer*(req: Request): Future[FishServer] {.async, gcsafe .} =
     proc(data: Ping) = asyncCheck that.onPing()
   )
 
-proc listen*(fs: FishServer) {.async.} =
-  var
-    ws = fs.ws
-    fh = fs.fh
-
-  while fs.ws.readyState == Open:
-    try:
-      let packet = await ws.receiveStrPacket()
-
-      fh.handle(packet)
-    except WebSocketClosedError as e:
-      error "shitsocket.crash", e=repr(e)
-      echo e.msg
-
-      return
+proc handle*(fs: FishServer, msg: string) = fs.proto.handle(msg)
