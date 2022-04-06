@@ -29,3 +29,13 @@ suite "test FramesHandler":
     echo data
 
     fh.dispatch(data)
+
+  test "Do notation for callback":
+    var fh = FramesHandler()
+
+    fh.addHandler() do(data: ChessStep):
+      echo data
+
+    let data = framify(ChessStep(san: some("b2b4")))
+    echo data
+    fh.dispatch(data)
