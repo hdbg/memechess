@@ -22,17 +22,25 @@ proc addHandler*[T](fh: FramesHandler, cb: proc(data: T)) =
 
   fh.handlers[kind] = decode
 
-proc addHandler*[T](fh: FramesHandler, cb: proc(data: T): Future[void]) =
-  var kind = $(T)
+template handle*(fh: FramesHandler, t: typedesc, body: untyped) =
+  proc newCallback(d: t) =
+    var data {.inject.}: t = d
+    body
 
-  proc decode(data: string) =
-    var
-      raw = parseJson(data)
-      decoded = json.to(raw, T)
+  addHandler[t](fh, newCallback)
 
-    asyncCheck cb(decoded)
+when false:
+  proc addHandler*[T](fh: FramesHandler, cb: proc(data: T): Future[void]) =
+    var kind = $(T)
 
-  fh.handlers[kind] = decode
+    proc decode(data: string) =
+      var
+        raw = parseJson(data)
+        decoded = json.to(raw, T)
+
+      asyncCheck cb(decoded)
+
+    fh.handlers[kind] = decode
 
 proc framify*[T](data: T): string =
   var kind = $(T)
@@ -40,7 +48,7 @@ proc framify*[T](data: T): string =
 
   $(%DataFrame(kind: kind, data: encoded))
 
-proc handle*(fh: FramesHandler, data: string) =
+proc dispatch*(fh: FramesHandler, data: string) =
   let raw = parseJson(data)
   let frame = json.to(raw, DataFrame)
 
