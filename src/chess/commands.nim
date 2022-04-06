@@ -6,11 +6,11 @@ export tables.`[]`
 type
   CommandCallback = proc(ctx: CommandContext)
 
-  CommandContext = ref object
+  CommandContext* = ref object
     options*: Table[string, string]
     arguments*: Table[string, string]
 
-  ParameterKind* = enum pkString, pkBool, pkInt, plUInt, pkFloat
+  ParameterKind* = enum pkString, pkBool, pkInt, pkUInt, pkFloat
 
   CommandParameter* = object
     name*: string
