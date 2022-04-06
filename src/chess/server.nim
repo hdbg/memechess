@@ -25,17 +25,16 @@ proc newFishServer*(conn: WebSocket): FishServer {.gcsafe.} =
     that = result
     fh = result.proto
 
-  fh.addHandler(
-    proc(data: ChessGameStart) = asyncCheck that.onGameStart(data)
-  )
-  fh.addHandler(
-    proc(data: ChessStep) = asyncCheck that.onGameStep(data)
-  )
-  fh.addHandler(
-    proc(data: TerminalInput) = that.commands.dispatch(data.input)
-  )
-  fh.addHandler(
-    proc(data: Ping) = asyncCheck that.onPing()
-  )
+  fh.handle(proto.ChessGameStart):
+    asyncCheck that.onGameStart(data)
 
-proc handle*(fs: FishServer, msg: string) = fs.proto.handle(msg)
+  fh.handle(proto.ChessStep):
+    asyncCheck that.onGameStep(data)
+
+  fh.handle(proto.TerminalInput):
+    that.commands.dispatch(data.input)
+
+  fh.handle(proto.Ping):
+    asyncCheck that.onPing()
+
+proc handle*(fs: FishServer, msg: string) = fs.proto.dispatch(msg)
