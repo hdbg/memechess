@@ -28,8 +28,7 @@ type
       values: seq[string]
     of eokString:
       str: string
-    of eokButton:
-      button: string
+    else: discard
 
   EngineInfo* = object
     depth, seldepth, nodes: Option[uint]
@@ -188,8 +187,14 @@ proc parseBestMove(msg: string): EngineMessage =
   get("bestmove", msg, result.bestmove, space=true)
   getStrOption("ponder", msg, result.ponder, space=true)
 
-proc getMessage*(msg: string): EngineMessage = discard
+proc getMessage*(msg: string): EngineMessage =
+  const funcTable = {"bestmove": parseBestMove, "option": parseOption, "info": parseInfo}.toTable
 
+  for (prefix, callback) in funcTable.pairs():
+    if msg.startswith prefix:
+      return callback(msg)
+
+  raise ValueError.newException("Invalid command found")
 # Gui-to-engine
 
 type
@@ -218,7 +223,7 @@ type
       moves: seq[string]
     of gmkGo:
       searchmoves: seq[string]
-      wtime, btime: Option[float]
+      wtime, btime: Option[uint] # milis
       winc, binc: Option[uint]
       movestogo: uint # No option cause counts only if > 0
 
@@ -229,14 +234,14 @@ type
     else: discard
 
 proc serializeGo(msg: GuiMessage): string =
-  result = ""
+  result = "go"
 
   macro optionInsert(name: untyped) =
     var ident = name.strVal
 
     result = quote do:
       if msg.`name`.isSome:
-        result.add(" " & `ident` & ($msg.`name`))
+        result.add(" " & `ident` & " " & ($msg.`name`.get))
 
   # im sorry, this is ugly
   optionInsert wtime
@@ -244,12 +249,13 @@ proc serializeGo(msg: GuiMessage): string =
   optionInsert winc
   optionInsert binc
 
-  result.add &" movestogo {$msg.movestogo}"
-
   optionInsert depth
   optionInsert nodes
   optionInsert mate
   optionInsert movetime
+
+  if msg.movestogo > 0:
+    result.add &" movestogo {$msg.movestogo}"
 
   if msg.searchmoves.len > 0:
     result.add " searchmoves"
@@ -269,7 +275,7 @@ proc `$`*(msg: GuiMessage): string =
       result.add " value " & msg.value.get
 
   of gmkPosition:
-    result = "position "
+    result = "position"
 
     if msg.fen.isSome:
       result.add " fen " & msg.fen.get
@@ -279,7 +285,7 @@ proc `$`*(msg: GuiMessage): string =
     if unlikely(msg.moves.len > 0):
       result.add " moves"           # no whitespace in the end, because every added move adds it
       for move in msg.moves:
-        result.add &" {move} "
+        result.add &" {move}"
   of gmkGo:
     result = serializeGo(msg)
   of gmkUci: result = "uci"
@@ -291,5 +297,6 @@ proc `$`*(msg: GuiMessage): string =
   # of gmkRegister:
   else: discard
 
+  result.add '\n'
 
 
