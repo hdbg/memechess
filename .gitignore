@@ -2,3 +2,4 @@ nimcache/
 evilfish
 outputGotten.txt
 /src/shellcode.js
+/tests/test_uci

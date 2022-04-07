@@ -1,4 +1,4 @@
-import std/[strutils, options, parseutils, tables, pegs, strformat]
+import std/[strutils, options, parseutils, tables, strformat, macros]
 
 type
   EngineMessageKind* = enum
@@ -58,38 +58,62 @@ type
       option: EngineOption
     else: discard
 
+{.push inline, discardable.}
 proc skipIdent(ident, msg: string): int =
-  let match = msg.find(name)
+  let match = msg.find(ident)
   if match == -1: return -1
-  let valueStart = match + name.len + 1 # last +1 for whitespace
 
-  if valueStart > msg.high:
-    raise ValueError("Invalid index")
+  result = match + ident.len + 1 # last +1 for whitespace
 
-proc get(name, msg: string, target: var int) {.inline.} =
-  parseInt(msg, target, start=skipIdent(name, msg))
+  if result > msg.high:
+    raise ValueError.newException("Invalid index")
 
-proc get(name, msg: string, target: var uint) {.inline.} =
-  parseUInt(msg, target, start=skipIdent(name, msg))
+using
+  msg: string
+  name: string
 
-proc get(name, msg: string, target: var float) {.inline.} =
-  parseFloat(msg, target, start=skipIdent(name, msg))
-
-proc get(name, msg: string, target: var bool) {.inline.} =
-  parseBool(msg, target, start=skipIdent(name, msg))
-
-proc get(name, msg: string, target: var string, space: bool = false) {.inline.} =
+proc get(name, msg; target: var string, space: bool = false): int =
   let identEnd = skipIdent(name, msg)
+
+  if identEnd == -1: return -1
 
   var delims = {'\n'}
   if space: delims.incl ' '
 
-  parseUntil(msg, target, delims)
+  parseUntil(msg, target, delims, start=identEnd)
 
-proc get[T](name, msg: string, target: var Option[T]) {.inline.} =
+proc getStrOption(name, msg; target: var Option[string], space: bool = false) =
+  var s: string
+  if get(name, msg, s, space) == -1:
+    target = none(string)
+  else:
+    target = some(s)
+
+proc getOption[T](name, msg; target: var Option[T]) =
   var val: T
-  get(name, msg, val)
-  target = some(val)
+  if get(name, msg, val) == -1:
+    target = none(T)
+  else:
+    target = some(val)
+
+template createGet(typing: typedesc, parser: typed) =
+  proc get(name, msg: string, target: var typing): int =
+    let index = skipIdent(name, msg)
+    if index == -1: return -1
+
+    when typing isnot bool:
+      parser(msg, target, start=index)
+    else:
+      var s: string
+      get(name, msg, s, true)
+      target = parser(s)
+
+createGet int, parseInt
+createGet uint, parseUInt
+createGet float, parseFloat
+createGet bool, parseBool
+
+{.pop.}
 
 # Engine-to-gui
 proc parseInfo(msg: string): EngineMessage =
@@ -97,37 +121,33 @@ proc parseInfo(msg: string): EngineMessage =
 
   var info: EngineInfo
 
-  get "depth", msg, info.depth
-  get "seldepth", msg, info.seldepth
+  getOption "depth", msg, info.depth
+  getOption "seldepth", msg, info.seldepth
 
-  get "time", msg, info.time
-  get "nodes", msg, info.nodes
-  get "multipv", msg, info.multipv
-  get "currmove", msg, info.currmove
-  get "currmovenumber", msg, info.currmovenumber
-  get "hashfull", msg, info.hashfull
-  get "nps", msg, info.nps
-  get "tbhits", msg, info.tbhits
-  get "sbhits", msg, info.sbhits
-  get "cpuload", msg, info.cpuload
+  getOption "time", msg, info.time
+  getOption "nodes", msg, info.nodes
+  getOption "multipv", msg, info.multipv
+  getOption "currmove", msg, info.currmove
+  getOption "currmovenumber", msg, info.currmovenumber
+  getOption "hashfull", msg, info.hashfull
+  getOption "nps", msg, info.nps
+  getOption "tbhits", msg, info.tbhits
+  getOption "sbhits", msg, info.sbhits
+  getOption "cpuload", msg, info.cpuload
   #get "string", msg, info.str
 
   var rawPv: string
   get "pv", msg, rawPv
 
-  info.pv = rawPv.split()
+  info.pv = some(rawPv.split())
 
   result.info = move(info)
 
 proc parseOption(msg: string): EngineMessage =
   result = EngineMessage(kind: emkOption)
 
-  var option: EngineOption
-
-  get "name", msg, option.name, true
-
-  var oType: string
-  get "type", msg, oType, true
+  var kind: string
+  get "type", msg, kind, true
 
   const strToKind = {"check": eokCheck,
                      "spin": eokSpin,
@@ -136,7 +156,9 @@ proc parseOption(msg: string): EngineMessage =
                      "string": eokString
                     }.toTable
 
-  option.kind = strToKind[oType]
+  var option = EngineOption(kind:strToKind[kind])
+
+  get "name", msg, option.name, true
 
   case option.kind
   of eokCheck:
@@ -149,11 +171,22 @@ proc parseOption(msg: string): EngineMessage =
     get "default", msg, option.str
   of eokCombo:
     get "default", msg, option.combo, true
-    const varSearch = peg"var {\w+}"
-    match(msg, varSearch, option.values)
+
+    let splitted: seq[string] = msg.split(' ')
+
+    for i in splitted.low()..splitted.high():
+      if (splitted[i]) == "var":
+        option.values.add splitted[i+1]
+
   else: discard
 
   result.option = move(option)
+
+proc parseBestMove(msg: string): EngineMessage =
+  result = EngineMessage(kind: emkBestMove)
+
+  get("bestmove", msg, result.bestmove, space=true)
+  getStrOption("ponder", msg, result.ponder, space=true)
 
 proc getMessage*(msg: string): EngineMessage = discard
 
@@ -195,6 +228,35 @@ type
       # Add infinite switch here
     else: discard
 
+proc serializeGo(msg: GuiMessage): string =
+  result = ""
+
+  macro optionInsert(name: untyped) =
+    var ident = name.strVal
+
+    result = quote do:
+      if msg.`name`.isSome:
+        result.add(" " & `ident` & ($msg.`name`))
+
+  # im sorry, this is ugly
+  optionInsert wtime
+  optionInsert btime
+  optionInsert winc
+  optionInsert binc
+
+  result.add &" movestogo {$msg.movestogo}"
+
+  optionInsert depth
+  optionInsert nodes
+  optionInsert mate
+  optionInsert movetime
+
+  if msg.searchmoves.len > 0:
+    result.add " searchmoves"
+
+    for move in msg.searchmoves:
+      result.add " " & move
+
 proc `$`*(msg: GuiMessage): string =
   result = ""
 
@@ -203,7 +265,7 @@ proc `$`*(msg: GuiMessage): string =
     result = "debug " & $msg.debug
   of gmkSetOption:
     result = "setoption name " & msg.name
-    if value.isSome:
+    if msg.value.isSome:
       result.add " value " & msg.value.get
 
   of gmkPosition:
@@ -219,40 +281,15 @@ proc `$`*(msg: GuiMessage): string =
       for move in msg.moves:
         result.add &" {move} "
   of gmkGo:
-    template optionInsert(name: untyped, uciName: Option[string]) =
-      let
-        value = $msg.name
-        realName = if uciName.isSome: uciName.get else: &"{name}" # sorry for COSTYL
+    result = serializeGo(msg)
+  of gmkUci: result = "uci"
+  of gmkIsReady: result = "isready"
+  of gmkStop: result = "stop"
+  of gmkPonderHit: result = "ponderhit"
+  of gmkQuit: result = "quit"
+  of gmkUciNewGame: result = "ucinewgame"
+  # of gmkRegister:
+  else: discard
 
-      result.add &" {realName} {value}"
 
-    # im sorry, this is ugly
-    optionInsert wtime
-    optionInsert btime
-    optionInsert winc
-    optionInsert binc
-    optionInsert movestogo
-    optionInsert depth
-    optionInsert nodes
-    optionInsert mate
-    optionInsert movetime
 
-    if msg.searchmoves.len > 0:
-      result,add " searchmoves"
-
-      for mov in searchmoves:
-        result.add " " & move
-
-when false:
-  proc uci(): string = "uci"
-  proc debug(mode: bool): string = "debug " & if mode: "on" else: "off"
-  proc isReady(): string = "isready"
-  proc setOption(name: string, value: Option[string]): string =
-    if value.isSome:
-      return &"setoption name {name} value {value}"
-    else:
-      return "setoption name " & value
-
-  # proc register
-
-  proc uciNewGame(): string = "ucinewgame"
