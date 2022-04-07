@@ -5,10 +5,17 @@ import commands
 import chronicles
 
 type
+  EngineConfig = object
+    delay: float
+    elo: uint
+    thinktime: float
+
   FishServer* = ref object
     proto: FramesHandler
     commands: CommandDispatcher
     conn: WebSocket
+
+    config: EngineConfig
 
 proc onGameStart(fs: FishServer, data: ChessGameStart) {.async.} = discard
 proc onGameStep(fs: FishServer, data: ChessStep) {.async.} = discard
