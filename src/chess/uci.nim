@@ -45,16 +45,16 @@ type
 
 
   EngineMessage* = object
-    case kind: EngineMessageKind
+    case kind*: EngineMessageKind
     of emkId:
-      name, author: Option[string]
+      name*, author*: Option[string]
     of emkBestMove:
-      bestmove: string
-      ponder: Option[string]
+      bestmove*: string
+      ponder*: Option[string]
     of emkInfo:
-      info: EngineInfo
+      info*: EngineInfo
     of emkOption:
-      option: EngineOption
+      option*: EngineOption
     else: discard
 
 {.push inline, discardable.}
@@ -65,13 +65,15 @@ proc skipIdent(ident, msg: string): int =
   result = match + ident.len + 1 # last +1 for whitespace
 
   if result > msg.high:
-    raise ValueError.newException("Invalid index")
+    return -1
 
 using
   msg: string
   name: string
 
 proc get(name, msg; target: var string, space: bool = false): int =
+  # if (msg.find(name) + name.len + 1) == msg.high: return -1
+
   let identEnd = skipIdent(name, msg)
 
   if identEnd == -1: return -1
@@ -157,7 +159,11 @@ proc parseOption(msg: string): EngineMessage =
 
   var option = EngineOption(kind:strToKind[kind])
 
-  get "name", msg, option.name, true
+  # get "name", msg, option.name, true
+
+  block parseName:
+    let ind = msg.find("name") + "name".len + 1
+    discard parseUntil(msg, option.name, " type", start=ind)
 
   case option.kind
   of eokCheck:
@@ -188,17 +194,22 @@ proc parseBestMove(msg: string): EngineMessage =
   getStrOption("ponder", msg, result.ponder, space=true)
 
 proc getMessage*(msg: string): EngineMessage =
-  const funcTable = {"bestmove": parseBestMove, "option": parseOption, "info": parseInfo}.toTable
+  const
+    funcTable = {"bestmove": parseBestMove, "option": parseOption, "info": parseInfo}.toTable
+    shortTable = {"uciok": emkUciOk, "readyok": emkReadyOk}.toTable
 
   for (prefix, callback) in funcTable.pairs():
     if msg.startswith prefix:
       return callback(msg)
 
-  raise ValueError.newException("Invalid command found")
+  for (prefix, kind) in shortTable.pairs():
+    if msg.startswith prefix:
+      return EngineMessage(kind:kind)
+
 # Gui-to-engine
 
 type
-  GuiMessageKind = enum
+  GuiMessageKind* = enum
     gmkUci
     gmkDebug
     gmkIsReady
@@ -211,24 +222,24 @@ type
     gmkPonderHit
     gmkQuit
 
-  GuiMessage = object
-    case kind: GuiMessageKind
+  GuiMessage* = object
+    case kind*: GuiMessageKind
     of gmkDebug:
-      debug: bool
+      debug*: bool
     of gmkSetOption:
-      name: string
-      value: Option[string]
+      name*: string
+      value*: Option[string]
     of gmkPosition:
-      fen: Option[string]
-      moves: seq[string]
+      fen*: Option[string]
+      moves*: seq[string]
     of gmkGo:
-      searchmoves: seq[string]
-      wtime, btime: Option[uint] # milis
-      winc, binc: Option[uint]
-      movestogo: uint # No option cause counts only if > 0
+      searchmoves*: seq[string]
+      wtime*, btime*: Option[uint] # milis
+      winc*, binc*: Option[uint]
+      movestogo*: uint # No option cause counts only if > 0
 
-      depth, nodes, mate: Option[uint]
-      movetime: Option[uint]
+      depth*, nodes*, mate*: Option[uint]
+      movetime*: Option[uint]
 
       # Add infinite switch here
     else: discard
