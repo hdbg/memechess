@@ -1,4 +1,4 @@
-import std/[json, tables, asyncfutures]
+import std/[json, tables, asyncfutures, jsonutils]
 
 type
   HandlerCallback = proc(data: string)
@@ -16,7 +16,7 @@ proc addHandler*[T](fh: FramesHandler, cb: proc(data: T)) =
   proc decode(data: string) =
     var
       raw = parseJson(data)
-      decoded = json.to(raw, T)
+      decoded = jsonTo(raw, T)
 
     cb(decoded)
 
@@ -29,22 +29,9 @@ template handle*(fh: FramesHandler, t: typedesc, body: untyped) =
 
   addHandler[t](fh, newCallback)
 
-when false:
-  proc addHandler*[T](fh: FramesHandler, cb: proc(data: T): Future[void]) =
-    var kind = $(T)
-
-    proc decode(data: string) =
-      var
-        raw = parseJson(data)
-        decoded = json.to(raw, T)
-
-      asyncCheck cb(decoded)
-
-    fh.handlers[kind] = decode
-
 proc framify*[T](data: T): string =
   var kind = $(T)
-  var encoded = $(%data)
+  var encoded = $(toJson(data))
 
   $(%DataFrame(kind: kind, data: encoded))
 

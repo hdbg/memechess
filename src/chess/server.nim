@@ -3,30 +3,35 @@ import std/[asynchttpserver, asyncdispatch]
 import ws
 import commands
 import chronicles
+# import mathexpr
+
+import engine, uci
 
 type
-  EngineConfig = object
-    delay: float
-    elo: uint
-    thinktime: float
-
   FishServer* = ref object
     proto: FramesHandler
     commands: CommandDispatcher
-    conn: WebSocket
+    conn*: WebSocket
 
-    config: EngineConfig
+    engine: ChessEngine
 
-proc onGameStart(fs: FishServer, data: ChessGameStart) {.async.} = discard
+    start: ChessGameStart
+
+proc onGameStart(fs: FishServer, data: ChessGameStart) {.async.} =
+  fs.start = data
+
+  debug "game.start", d=framify(data)
+
 proc onGameStep(fs: FishServer, data: ChessStep) {.async.} = discard
 proc onPing(fs: FishServer) {.async.} = await fs.conn.send(framify(PingResponse()))
 
-proc newFishServer*(conn: WebSocket): FishServer {.gcsafe.} =
+proc newFishServer*(): FishServer {.gcsafe.} =
   new result
 
   result.proto = FramesHandler()
   result.commands = newCommandDispatcher()
-  result.conn = conn
+
+  result.engine = newChessEngine("engine")
 
   var
     that = result

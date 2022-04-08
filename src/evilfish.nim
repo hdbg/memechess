@@ -8,7 +8,7 @@ import injector
 const interceptPort = 8080
 
 proc intercept(req: Request) {.async gcsafe.} =
-  debug "intercept.received", req = req
+  when defined trace: debug "intercept.received", req = req
 
   const
     domain = "https://lichess.org"
@@ -22,7 +22,7 @@ proc intercept(req: Request) {.async gcsafe.} =
   let resp = await http.request(domain & uri.`$`(req.url), httpMethod = req.reqMethod,
       headers = headers, body = req.body)
 
-  debug "lichess.answer", status = resp.status, headers = resp.headers
+  when defined trace: debug "lichess.answer", status = resp.status, headers = resp.headers
 
   var
     body = await inject(resp)
@@ -75,15 +75,17 @@ proc wsocket(req: Request) {.async gcsafe.} =
   sck.close()
 
 proc startChess(req: Request) {.async, gcsafe.} =
-  var
-    chessSocket = await newWebsocket(req)
-    server = newFishServer(chessSocket)
+  var server {.global.} = newFishServer()
 
-  await chessSocket.send("test")
+  var chessSocket = await newWebsocket(req)
+
+  server.conn = chessSocket
+
   while chessSocket.readyState == Open:
+    try:
       let msg = await chessSocket.receiveStrPacket()
       server.handle(msg)
-
+    except WebSocketError: return
 
 
 proc dispatch(req: Request) {.async, gcsafe.} =
@@ -103,6 +105,5 @@ proc main {.async.} =
 
   while true:
     await server.acceptRequest(dispatch)
-
 
 waitFor main()

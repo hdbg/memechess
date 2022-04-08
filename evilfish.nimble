@@ -10,4 +10,4 @@ bin           = @["evilfish"]
 
 # Dependencies
 
-requires "nim >= 1.6.4", "chronicles", "zippy", "ws", "jswebsockets"
+requires "nim >= 1.6.4", "chronicles", "zippy", "ws", "jswebsockets", "mathexpr"

@@ -2,6 +2,8 @@ import std/[dom, jsffi, options, jsconsole]
 import jquery
 
 type
+  Callback = proc(cmd: string)
+
   TerminalEchoOptions* = object
     raw*: bool # Allow display raw html
     finalize*: Option[proc(container: Element)]
@@ -17,8 +19,7 @@ type
   Terminal* = ref object of JsObject
 
 
-proc newTerminal*(selector: JsObject, callback: proc(cmd: string),
-    cfg: TerminalCfg): Terminal =
+proc newTerminal*(selector: JsObject, cfg: TerminalCfg, callback: Callback): Terminal =
 
   jQuery(
     proc (d: JqDollar, undefined: JsObject) =

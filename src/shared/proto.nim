@@ -15,6 +15,7 @@ type
     cvRacingKings
 
   ChessTime* = enum ctUltrabullet, ctBullet, ctBlitz, ctRapid
+  ChessSide* = enum csBlack, csWhite
 
   ChessStep* = object
     fen*: string
@@ -22,13 +23,20 @@ type
 
     san*, uci*: Option[string]
 
+  ChessClock* = object
+    white*, black*, inc*: Option[uint]
+
   ChessGameStart* = object
-    start*: seq[ChessStep]
+    id*: string
+
+    steps*: seq[ChessStep]
 
     variant*: ChessVariant
     time*: ChessTime
 
-    clock*: tuple[white, black, inc: float]
+    side*: ChessSide
+
+    clock*: ChessClock
 
   TerminalInput* = object
     input*: string
@@ -37,4 +45,6 @@ type
     output*: string
 
   Ping* = object
+    time: uint
   PingResponse* = object
+    time: uint

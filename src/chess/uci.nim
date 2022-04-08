@@ -17,17 +17,17 @@ type
     value: int
 
   EngineOption* = object
-    name: string
-    case kind: EngineOptionKind
+    name*: string
+    case kind*: EngineOptionKind
     of eokCheck:
-      check: bool
+      check*, checkDefault: bool
     of eokSpin:
-      min, max, spin: int
+      min*, max*, spin*, spinDefault: int
     of eokCombo:
-      combo: string
+      combo*, comboDefault*: string
       values: seq[string]
     of eokString:
-      str: string
+      str, strDefault*: string
     else: discard
 
   EngineInfo* = object
@@ -42,7 +42,6 @@ type
     score: EngineScore
 
     currmove, str: Option[string]
-
 
   EngineMessage* = object
     case kind*: EngineMessageKind
@@ -135,12 +134,13 @@ proc parseInfo(msg: string): EngineMessage =
   getOption "tbhits", msg, info.tbhits
   getOption "sbhits", msg, info.sbhits
   getOption "cpuload", msg, info.cpuload
-  #get "string", msg, info.str
+  getStrOption "string", msg, info.str
 
-  var rawPv: string
-  get "pv", msg, rawPv
+  var rawPv: Option[string]
+  getStrOption " pv", msg, rawPv # otherwise triggers on "multipv"
 
-  info.pv = some(rawPv.split())
+  if rawPv.isSome:
+    info.pv = some(rawPv.get.split())
 
   result.info = move(info)
 
@@ -168,14 +168,20 @@ proc parseOption(msg: string): EngineMessage =
   case option.kind
   of eokCheck:
     get "default", msg, option.check
+    option.checkDefault = option.check
   of eokSpin:
     get "default", msg, option.spin
     get "min", msg, option.min
     get "max", msg, option.max
+
+    option.spinDefault = option.spin
   of eokString:
     get "default", msg, option.str
+    option.strDefault = option.str
   of eokCombo:
     get "default", msg, option.combo, true
+
+    option.comboDefault = option.combo
 
     let splitted: seq[string] = msg.split(' ')
 
@@ -205,6 +211,30 @@ proc getMessage*(msg: string): EngineMessage =
   for (prefix, kind) in shortTable.pairs():
     if msg.startswith prefix:
       return EngineMessage(kind:kind)
+
+proc isDefault*(option: EngineOption): bool =
+  case option.kind
+  of eokCombo:
+    return option.combo == option.comboDefault
+  of eokSpin:
+    return option.spin == option.spinDefault
+  of eokString:
+    return option.str == option.strDefault
+  of eokCheck:
+    return option.check == option.checkDefault
+  of eokButton: return true
+
+proc `$`*(option: EngineOption): string =
+  case option.kind
+  of eokCombo:
+    return $option.combo
+  of eokSpin:
+    return $option.spin
+  of eokString:
+    return option.str
+  of eokCheck:
+    return $option.check
+  of eokButton: return ""
 
 # Gui-to-engine
 
@@ -282,7 +312,7 @@ proc `$`*(msg: GuiMessage): string =
     result = "debug " & $msg.debug
   of gmkSetOption:
     result = "setoption name " & msg.name
-    if msg.value.isSome:
+    if msg.value.isSome and msg.value.get != "":
       result.add " value " & msg.value.get
 
   of gmkPosition:

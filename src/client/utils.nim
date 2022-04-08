@@ -1,0 +1,62 @@
+import std/[dom, jsffi, options, tables]
+import shared/proto
+
+proc createAnchor*(parent: string, child_id: string) =
+  var ancestorRaw = document.getElementsByClassName(parent)
+
+  if ancestorRaw.len != 1:
+    raise ValueError.newException("Can't find ui root")
+  var ancestor = ancestorRaw[0]
+
+  var anchor = document.createElement("div")
+  anchor.setAttribute("id", child_id)
+
+  ancestor.appendChild(anchor)
+
+proc toSome[T](data: JsObject): Option[T] = some(data.to(T))
+proc `$`(data: JsObject): string = $(data.to(cstring))
+
+proc createStart*(opts: JsObject): ChessGameStart =
+  const
+      varTable = {
+        "Standard": cvStandard,
+        "Atomic": cvAtomic,
+        "Crazyhouse": cvCrazyHouse
+      }.toTable # TODO MORe
+
+      timeTable = {
+        "blitz": ctBlitz,
+        "bullet": ctBullet,
+        "rapid": ctRapid,
+        "ultraBullet": ctUltrabullet
+      }.toTable
+
+  let
+    data = opts.data
+    game = data.game
+
+  result.id = $game.id
+
+  result.time = timeTable[$game.speed]
+  result.variant = varTable[$game.variant.name]
+
+  result.side = if $data.player.color == "white": csWhite else: csBlack
+
+  if data.clock != jsUndefined:
+    let clock = data.clock
+
+    result.clock = ChessClock(
+      white: toSome[uint](clock.white),
+      black: toSome[uint](clock.black)
+    )
+
+    if clock.inc != jsUndefined:
+      result.clock.inc = toSome[uint](clock.inc)
+
+  for step in (data.steps.to(seq[JsObject])):
+    if step.uci != jsNull and step.san != jsNull:
+      result.steps.add ChessStep(
+        fen: $step.fen, uci: some($step.uci),
+        san: some($step.san),
+        ply: step.ply.to(uint)
+      )
