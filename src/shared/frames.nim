@@ -16,10 +16,9 @@ proc addHandler*[T](fh: FramesHandler, cb: proc(data: T)) =
   proc decode(data: string) =
     var
       raw = parseJson(data)
-      decoded = jsonTo(raw, T)
+      decoded = jsonutils.jsonTo(raw, T)
 
     cb(decoded)
-
   fh.handlers[kind] = decode
 
 template handle*(fh: FramesHandler, t: typedesc, body: untyped) =
@@ -31,13 +30,13 @@ template handle*(fh: FramesHandler, t: typedesc, body: untyped) =
 
 proc framify*[T](data: T): string =
   var kind = $(T)
-  var encoded = $(toJson(data))
+  var encoded = $(jsonutils.toJson(data))
 
-  $(%DataFrame(kind: kind, data: encoded))
+  $(toJson(DataFrame(kind: kind, data: encoded)))
 
 proc dispatch*(fh: FramesHandler, data: string) =
   let raw = parseJson(data)
-  let frame = json.to(raw, DataFrame)
+  let frame = jsonutils.jsonTo(raw, DataFrame)
 
   for (kind, handler) in fh.handlers.pairs():
     if frame.kind == kind: handler(frame.data)

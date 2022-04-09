@@ -13,7 +13,7 @@ type
     protocol: FramesHandler
     conn: jswebsockets.WebSocket
 
-    apiMove: proc(before, after: cstring): JsObject
+    apiMove: proc(movedata: ChessStep): JsObject
 
     rawCtrl: JsObject
     rawOpts: JsObject
@@ -23,6 +23,8 @@ proc onCmd(sc: ShellCode, cmd: string) =
   var data = framify(TerminalInput(input: cmd)).cstring
   sc.conn.send data
 
+proc onStep(sc: ShellCode, step: ChessStep) =
+  sc.conn.send framify(step).cstring
 
 proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
   new result
@@ -46,13 +48,26 @@ proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
   #result.apiMove = to(Reflect.get(ctrl, "apiMove".cstring), typeof(result.apiMove))
   #Reflect.set(ctrl, "apiMove".cstring, toJs(proc(before, after: cstring) = console.log(before, after)))
 
-  result.apiMove = ctrl.socket.handlers.move.to(proc(before, after: cstring): JsObject)
+  result.apiMove = ctrl.socket.handlers.move.to(proc(movedata: ChessStep): JsObject)
 
   var that = result
+  proc moveHook(step: JsObject): JsObject =
+    var realStep =
+      ChessStep(
+        fen: $step.fen,
+        san: some($step.san),
+        uci: some($step.uci),
+        clock: some(
+          ChessClock(
+            white: step.clock.white.to(float),
+            black: step.clock.black.to(float)
+          )
+        )
+      )
+    result = that.apiMove(realStep)
 
-  proc moveHook(before, after: cstring): JsObject =
-    result = that.apiMove(before, after)
-    console.log before, after
+    that.onStep(move(realStep))
+
 
   # Reflect.set(ctrl.socket.handlers, "move".cstring, toJs(moveHook))
 
@@ -69,4 +84,5 @@ proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
     echo toSend
     conn.send toSend.cstring
 
-    discard setInterval(delay = 400, callback = proc(args: varargs[JsObject]) = conn.send (framify Ping()).cstring)
+    discard setInterval(delay = 400, callback = proc(args: varargs[
+        JsObject]) = conn.send (framify Ping()).cstring)

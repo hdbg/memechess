@@ -17,14 +17,17 @@ type
   ChessTime* = enum ctUltrabullet, ctBullet, ctBlitz, ctRapid
   ChessSide* = enum csBlack, csWhite
 
+  ChessClock* = object
+    white*, black*: float
+    inc*: Option[uint]
+
   ChessStep* = object
     fen*: string
     ply*: uint
 
     san*, uci*: Option[string]
 
-  ChessClock* = object
-    white*, black*, inc*: Option[uint]
+    clock*: Option[ChessClock]
 
   ChessGameStart* = object
     id*: string
@@ -46,5 +49,6 @@ type
 
   Ping* = object
     time: uint
+
   PingResponse* = object
     time: uint

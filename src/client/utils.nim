@@ -13,8 +13,8 @@ proc createAnchor*(parent: string, child_id: string) =
 
   ancestor.appendChild(anchor)
 
-proc toSome[T](data: JsObject): Option[T] = some(data.to(T))
-proc `$`(data: JsObject): string = $(data.to(cstring))
+proc toSome*[T](data: JsObject): Option[T] = some(data.to(T))
+proc `$`*(data: JsObject): string = $(data.to(cstring))
 
 proc createStart*(opts: JsObject): ChessGameStart =
   const
@@ -46,8 +46,8 @@ proc createStart*(opts: JsObject): ChessGameStart =
     let clock = data.clock
 
     result.clock = ChessClock(
-      white: toSome[uint](clock.white),
-      black: toSome[uint](clock.black)
+      white: clock.white.to(float),
+      black: clock.black.to(float)
     )
 
     if clock.inc != jsUndefined:
@@ -56,7 +56,8 @@ proc createStart*(opts: JsObject): ChessGameStart =
   for step in (data.steps.to(seq[JsObject])):
     if step.uci != jsNull and step.san != jsNull:
       result.steps.add ChessStep(
-        fen: $step.fen, uci: some($step.uci),
+        fen: $step.fen,
+        uci: some($step.uci),
         san: some($step.san),
         ply: step.ply.to(uint)
       )
