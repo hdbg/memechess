@@ -13,11 +13,10 @@ type
     protocol: FramesHandler
     conn: jswebsockets.WebSocket
 
-    apiMove: proc(movedata: ChessStep): JsObject
-
     rawCtrl: JsObject
     rawOpts: JsObject
 
+    apiMove: proc(movedata: JsObject): JsObject
 
 proc onCmd(sc: ShellCode, cmd: string) =
   var data = framify(TerminalInput(input: cmd)).cstring
@@ -26,32 +25,15 @@ proc onCmd(sc: ShellCode, cmd: string) =
 proc onStep(sc: ShellCode, step: ChessStep) =
   sc.conn.send framify(step).cstring
 
-proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
-  new result
 
-  result.rawCtrl = ctrl
-  result.rawOpts = opts
+# ==========
+# Setup shit
+# ==========
 
-  result.protocol = FramesHandler()
+proc setupHooks(sc: ShellCode) =
+  sc.apiMove = sc.rawCtrl.socket.handlers.move.to(typeof(sc.apiMove))
 
-  console.log opts
-  console.log ctrl
-
-  block ui:
-    let tc = TerminalCfg(height: 100, width: 300)
-
-    createAnchor("game__meta", "fish-gui")
-
-    result.terminal = newTerminal("#fish-gui".toJs, tc) do(cmd: string):
-      result.onCmd(cmd)
-
-  #result.apiMove = to(Reflect.get(ctrl, "apiMove".cstring), typeof(result.apiMove))
-  #Reflect.set(ctrl, "apiMove".cstring, toJs(proc(before, after: cstring) = console.log(before, after)))
-
-  result.apiMove = ctrl.socket.handlers.move.to(proc(movedata: ChessStep): JsObject)
-
-  var that = result
-  proc moveHook(step: JsObject): JsObject =
+  proc moveHook(step: JsObject): JsObject {.inline.} =
     var realStep =
       ChessStep(
         fen: $step.fen,
@@ -64,25 +46,40 @@ proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
           )
         )
       )
-    result = that.apiMove(realStep)
+    result = sc.apiMove(step)
 
     that.onStep(move(realStep))
 
+  sc.rawCtrl.socket.handlers.move = toJs(moveHook)
 
-  # Reflect.set(ctrl.socket.handlers, "move".cstring, toJs(moveHook))
+proc setupUI(sc: ShellCode) {.inline.} =
+  let tc = TerminalCfg(height: 100, width: 300)
 
-  ctrl.socket.handlers.move = toJs(moveHook)
-  console.log ctrl
+  createAnchor("game__meta", "fish-gui")
+
+  sc.terminal = newTerminal("#fish-gui".toJs, tc) do(cmd: string):
+      result.onCmd(cmd)
+
+proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
+  new result
+
+  result.rawCtrl = ctrl
+  result.rawOpts = opts
+
+  result.protocol = FramesHandler()
+
+  sc.setupHooks
+  sc.setupUI
 
   var conn = newWebsocket("ws://localhost:8080/fish")
-  result.conn = conn
 
-  conn.onOpen = proc(event: Event) =
-    console.log "socket open"
-
-    let toSend = framify(createStart(opts))
-    echo toSend
-    conn.send toSend.cstring
+  conn.onOpen() do(e: Event)
+    conn.send framify(createStart opts)
 
     discard setInterval(delay = 400, callback = proc(args: varargs[
         JsObject]) = conn.send (framify Ping()).cstring)
+
+  conn.onMessage() do(e: MessageEvent):
+    result.protocol.dispatch $e.data
+
+  result.conn = conn
