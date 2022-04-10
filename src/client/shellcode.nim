@@ -13,18 +13,35 @@ type
     protocol: FramesHandler
     conn: jswebsockets.WebSocket
 
-    rawCtrl: JsObject
-    rawOpts: JsObject
+    rawCtrl, rawOpts, chessground: JsObject
 
     apiMove: proc(movedata: JsObject): JsObject
 
-proc onCmd(sc: ShellCode, cmd: string) =
-  var data = framify(TerminalInput(input: cmd)).cstring
-  sc.conn.send data
+proc onEngineStep(sc: ShellCode, step: EngineStep) =
+  let
+    before = step.move[0..1]
+    after = step.move[2..3]
 
-proc onStep(sc: ShellCode, step: ChessStep) =
-  sc.conn.send framify(step).cstring
+  var promotion: JsObject = jsUndefined
 
+  if step.move.len > 4:
+    const promotionTable = {'q':"queen", 'n':"knight", 'r':"rook", 'b':"bishop"}.toTable
+    promotion = promotionTable[step.move[5]].toJs
+
+  sc.chessground.selectSquare(before)
+
+  type
+    MoveMetaData = object
+      premove: bool
+      captured: string
+
+  proc cb =
+    sc.rawCtrl.onUserMove(before, after, MoveMetaData(premove: step.premove))
+    sc.chessground.move(before, after)
+
+  if step.delay > 0:
+    discard setTimeout(cb, step.delay.int)
+  else: cb()
 
 # ==========
 # Setup shit
@@ -48,7 +65,9 @@ proc setupHooks(sc: ShellCode) =
       )
     result = sc.apiMove(step)
 
-    that.onStep(move(realStep))
+    echo realStep
+
+    sc.conn.send framify(realStep).cstring
 
   sc.rawCtrl.socket.handlers.move = toJs(moveHook)
 
@@ -58,28 +77,40 @@ proc setupUI(sc: ShellCode) {.inline.} =
   createAnchor("game__meta", "fish-gui")
 
   sc.terminal = newTerminal("#fish-gui".toJs, tc) do(cmd: string):
-      result.onCmd(cmd)
+    var data = framify(TerminalInput(input: cmd)).cstring
+    sc.conn.send data
+
+proc setupProto(sc: ShellCode) =
+  sc.protocol.handle(EngineStep):
+    sc.onEngineStep(data)
 
 proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
+
+  if opts.data.game.status.id.to(int) != 20:
+    quit()
+
   new result
+
+  console.log opts
 
   result.rawCtrl = ctrl
   result.rawOpts = opts
+  result.chessground = ctrl.chessground
 
   result.protocol = FramesHandler()
 
-  sc.setupHooks
-  sc.setupUI
+  result.setupHooks
+  result.setupUI
+  result.setupProto
 
   var conn = newWebsocket("ws://localhost:8080/fish")
 
-  conn.onOpen() do(e: Event)
-    conn.send framify(createStart opts)
+  conn.onOpen = proc(event: Event) =
+    conn.send(framify(createStart opts).cstring)
 
-    discard setInterval(delay = 400, callback = proc(args: varargs[
-        JsObject]) = conn.send (framify Ping()).cstring)
+    discard setInterval(proc = conn.send((framify Ping()).cstring), delay = 3000)
 
-  conn.onMessage() do(e: MessageEvent):
+  conn.onMessage = proc(e: MessageEvent) =
     result.protocol.dispatch $e.data
 
   result.conn = conn

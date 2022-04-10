@@ -30,14 +30,14 @@ proc receive(engine: ChessEngine): EngineMessage =
 
   let line = engine.stdout.readLine
 
-  debug "engine.received", line=line
+  when defined trace: debug "engine.received", line=line
 
   getMessage(line)
 
 proc send(engine: ChessEngine, msg: GuiMessage) =
   let line = $msg
 
-  debug "engine.sent", line=line
+  when defined trace: debug "engine.sent", line=line
 
   engine.stdin.write line
   engine.stdin.flush()
@@ -50,8 +50,6 @@ iterator waitFor*(engine: ChessEngine, kind: EngineMessageKind): EngineMessage =
 
   while msg.isNone() or msg.get.kind != kind:
     msg = some(engine.receive)
-
-    debug "msg.kind", k = msg.get.kind
 
     yield msg.get()
 

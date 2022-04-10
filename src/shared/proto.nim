@@ -48,7 +48,16 @@ type
     output*: string
 
   Ping* = object
-    time: uint
+    time*: uint
 
   PingResponse* = object
-    time: uint
+    time*: uint
+
+  ShortEngineInfo* = object
+    nodes*, depth*, nps*: Option[uint]
+    score*: Option[int]
+
+  EngineStep* = object
+    move*: string
+    delay*: uint
+    premove*: bool

@@ -13,8 +13,8 @@ type
   EngineOptionKind* = enum eokCheck, eokSpin, eokCombo, eokButton, eokString
 
   EngineScore* = object
-    kind: EngineScoreKind
-    value: int
+    kind*: EngineScoreKind
+    value*: int
 
   EngineOption* = object
     name*: string
@@ -31,17 +31,17 @@ type
     else: discard
 
   EngineInfo* = object
-    depth, seldepth, nodes: Option[uint]
-    currmovenumber, hashfull, nps: Option[uint]
-    tbhits, sbhits, cpuload: Option[uint]
+    depth*, seldepth*, nodes*: Option[uint]
+    currmovenumber*, hashfull*, nps*: Option[uint]
+    tbhits*, sbhits*, cpuload*: Option[uint]
 
-    time: Option[float]
-    refutation, pv: Option[seq[string]]
-    multipv: Option[uint]
+    time*: Option[float]
+    refutation*, pv*: Option[seq[string]]
+    multipv*: Option[uint]
 
-    score: EngineScore
+    score*: EngineScore
 
-    currmove, str: Option[string]
+    currmove*, str*: Option[string]
 
   EngineMessage* = object
     case kind*: EngineMessageKind
