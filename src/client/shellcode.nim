@@ -22,11 +22,14 @@ proc onEngineStep(sc: ShellCode, step: EngineStep) =
     before = step.move[0..1]
     after = step.move[2..3]
 
+  echo step
+  echo @[before, after]
+
   var promotion: JsObject = jsUndefined
 
   if step.move.len > 4:
     const promotionTable = {'q':"queen", 'n':"knight", 'r':"rook", 'b':"bishop"}.toTable
-    promotion = promotionTable[step.move[5]].toJs
+    promotion = promotionTable[step.move[4]].toJs
 
   sc.chessground.selectSquare(before)
 
@@ -34,14 +37,27 @@ proc onEngineStep(sc: ShellCode, step: EngineStep) =
     MoveMetaData = object
       premove: bool
       captured: string
+      holdtime: JsObject
 
-  proc cb =
-    sc.rawCtrl.onUserMove(before, after, MoveMetaData(premove: step.premove))
+  var meta = MoveMetaData(premove: step.premove)
+
+  proc cb() =
+    meta.holdtime = sc.chessground.state.hold.stop()
+
+    when defined exp:
+      sc.rawCtrl.sendMove(before.cstring, after.cstring, promotion.cstring, meta)
+    else:
+      sc.rawCtrl.onUserMove(before.cstring, after.cstring, meta)
+
     sc.chessground.move(before, after)
 
   if step.delay > 0:
     discard setTimeout(cb, step.delay.int)
   else: cb()
+
+proc onTerminalOutput(sc: ShellCode, output: TerminalOutput) =
+  echo output.text
+  # sc.terminal.echo(output.text)
 
 # ==========
 # Setup shit
@@ -50,20 +66,31 @@ proc onEngineStep(sc: ShellCode, step: EngineStep) =
 proc setupHooks(sc: ShellCode) =
   sc.apiMove = sc.rawCtrl.socket.handlers.move.to(typeof(sc.apiMove))
 
-  proc moveHook(step: JsObject): JsObject {.inline.} =
-    var realStep =
-      ChessStep(
-        fen: $step.fen,
-        san: some($step.san),
-        uci: some($step.uci),
-        clock: some(
+  proc moveHook(step: JsObject): JsObject =
+    result = sc.apiMove(step)
+
+    let
+      ply = sc.rawCtrl.lastPly()
+
+    console.log("Another step: ".cstring, sc.rawCtrl.stepAt(ply))
+
+    var realStep = ChessStep(fen: $step.fen,san: some($step.san), ply: step.ply.to(uint))
+
+    case realStep.san.get
+    of "O-O":
+      realStep.uci = if realStep.ply mod 2 == 0: some("e8g8") else: some("e1g1")
+    of "O-O-O":
+      realStep.uci = if realStep.ply mod 2 == 0: some("e8c8") else: some("e1c1")
+    else:
+      realStep.uci = some($step.uci)
+
+    if step.clock != jsUndefined:
+      realStep.clock = some(
           ChessClock(
             white: step.clock.white.to(float),
             black: step.clock.black.to(float)
           )
         )
-      )
-    result = sc.apiMove(step)
 
     echo realStep
 
@@ -77,21 +104,22 @@ proc setupUI(sc: ShellCode) {.inline.} =
   createAnchor("game__meta", "fish-gui")
 
   sc.terminal = newTerminal("#fish-gui".toJs, tc) do(cmd: string):
-    var data = framify(TerminalInput(input: cmd)).cstring
+    var data = framify(TerminalInput(text: cmd)).cstring
     sc.conn.send data
 
 proc setupProto(sc: ShellCode) =
   sc.protocol.handle(EngineStep):
+    if sc.rawOpts.data.game.status.id.to(int) != 20: return
     sc.onEngineStep(data)
+
+  sc.protocol.handle(TerminalOutput):
+    if sc.rawOpts.data.game.status.id.to(int) != 20: return
+
+    sc.onTerminalOutput(data)
 
 proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
 
-  if opts.data.game.status.id.to(int) != 20:
-    quit()
-
   new result
-
-  console.log opts
 
   result.rawCtrl = ctrl
   result.rawOpts = opts
@@ -105,12 +133,18 @@ proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
 
   var conn = newWebsocket("ws://localhost:8080/fish")
 
+  when not defined release:
+    console.log opts
+    console.log result
+
   conn.onOpen = proc(event: Event) =
     conn.send(framify(createStart opts).cstring)
 
-    discard setInterval(proc = conn.send((framify Ping()).cstring), delay = 3000)
+    # discard setInterval(proc = conn.send((framify Ping()).cstring), delay = 3000)
 
   conn.onMessage = proc(e: MessageEvent) =
     result.protocol.dispatch $e.data
 
   result.conn = conn
+
+

@@ -14,7 +14,7 @@ type
     cvHorde,
     cvRacingKings
 
-  ChessTime* = enum ctUltrabullet, ctBullet, ctBlitz, ctRapid
+  ChessTime* = enum ctUltrabullet, ctBullet, ctBlitz, ctRapid, ctCorrespondence
   ChessSide* = enum csBlack, csWhite
 
   ChessClock* = object
@@ -42,10 +42,10 @@ type
     clock*: ChessClock
 
   TerminalInput* = object
-    input*: string
+    text*: string
 
   TerminalOutput* = object # TODO: Some echo options info
-    output*: string
+    text*: string
 
   Ping* = object
     time*: uint

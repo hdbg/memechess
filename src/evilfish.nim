@@ -8,7 +8,7 @@ import injector
 const interceptPort = 8080
 
 proc intercept(req: Request) {.async gcsafe.} =
-  when defined trace: debug "intercept.received", req = req
+  when defined trace: debug "intercept.received"
 
   const
     domain = "https://lichess.org"
@@ -39,7 +39,7 @@ proc intercept(req: Request) {.async gcsafe.} =
 
 
 proc wsocket(req: Request) {.async gcsafe.} =
-  debug "ws.connect", req=req
+  debug "ws.connect"
 
   var sck = await newWebsocket(req)
 
@@ -56,7 +56,7 @@ proc wsocket(req: Request) {.async gcsafe.} =
         var msg = liMsg.read
         await sck.send msg
 
-        when defined trace: debug "lisck.received", message=msg
+        # when defined trace: debug "lisck.received", message=msg
 
         liMsg = liSck.receiveStrPacket()
 
@@ -64,7 +64,7 @@ proc wsocket(req: Request) {.async gcsafe.} =
         var msg  = sckMsg.read
         await liSck.send msg
 
-        when defined trace: debug "sck.received", message=msg
+        # when defined trace: debug "sck.received", message=msg
 
         sckMsg = sck.receiveStrPacket()
 

@@ -1,5 +1,5 @@
 import src/shared/[frames, proto]
-import std/[asynchttpserver, asyncdispatch, options, random]
+import std/[asynchttpserver, asyncdispatch, options, random, strformat]
 import ws
 import commands
 import chronicles
@@ -10,10 +10,11 @@ import engine, uci
 type
   GameState = object
     info: ChessGameStart
-
     fen: Option[string]
-
     moves: seq[string]
+
+
+  FishMode = enum fmOff, fmLegit, fmRage, fmManual , fmAdvisor
 
   FishServer* = ref object
     proto: FramesHandler
@@ -22,18 +23,21 @@ type
 
     engine: ChessEngine
 
+    mode: FishMode
+
     state: GameState
 
 proc queryEngine(fs: FishServer) {.async.} =
-  echo len(fs.state.moves)
-
   let nextToMove = if len(fs.state.moves) mod 2 == 0: csWhite else: csBlack
+
+  debug "side", next=nextToMove, saved=fs.state.info.side
+
   if nextToMove != fs.state.info.side: return
 
   info "engine.search", toMove=nextToMove
 
   let
-    pos = GuiMessage(kind: gmkPosition, fen: fs.state.fen, moves: fs.state.moves)
+    pos = GuiMessage(kind: gmkPosition, moves: fs.state.moves)
     limit = GuiMessage(kind: gmkGo, movetime: some(100.uint)) # Config invoke here
 
   var best: EngineMessage
@@ -41,26 +45,39 @@ proc queryEngine(fs: FishServer) {.async.} =
     if msg.kind == emkInfo:
       let info = msg.info
 
-      var short = ShortEngineInfo(
-        nodes: info.nodes,
-        depth: info.depth,
-        nps: info.nps
-      )
+      var output: string
 
-      if info.score.kind == eskCp:
-        short.score = some(info.score.value)
+      if info.score.isSome and info.score.get.kind == eskCp:
+        let
+          score = info.score.get
 
-      await fs.conn.send framify(short)
+          val = if score.value.isSome: score.value.get else: 0
+          prefix = if val < 0: '-' else: '+'
+          color = if val < 0: "#52ec29" else: "#ec3829"
+
+        output.add &"[[b;{color};]{prefix}{$val}] "
+
+      if info.nodes.isSome:
+        output.add &"nodes={$info.nodes.get} "
+
+      if info.nps.isSome:
+        output.add &"nps={$info.nps.get} "
+
+      if info.depth.isSome:
+        output.add &"depth={$info.depth.get}"
+
+      # await fs.conn.send framify(TerminalOutput(text: output))
     elif msg.kind == emkBestMove:
       best = msg
 
-  await fs.conn.send framify(EngineStep(move: best.bestmove, delay: 10.uint))
+  let step = EngineStep(move: best.bestmove, delay: rand(400).uint)
+  await fs.conn.send framify(step)
 
+  debug "engine.best", step=step
 
 
 proc onGameStart(fs: FishServer, data: ChessGameStart) {.async.} =
-  fs.state.info = data
-  fs.state.moves = @[]
+  fs.state = GameState()
 
   if data.steps.len > 0:
     fs.state.fen = some(data.steps[high(data.steps)].fen)
@@ -68,14 +85,16 @@ proc onGameStart(fs: FishServer, data: ChessGameStart) {.async.} =
     for step in data.steps:
       fs.state.moves.add step.uci.get
 
-  debug "game.start", d=framify(data), moves=fs.state.moves
+  fs.state.info = data
+
+  debug "game.start", moves=fs.state.moves, data=($data)
 
   await fs.queryEngine()
 
 proc onGameStep(fs: FishServer, data: ChessStep) {.async.} =
-  info "game.step", data=framify(data)
-
   fs.state.moves.add data.uci.get()
+
+  info "game.step", moves = fs.state.moves
 
   await fs.queryEngine()
 
@@ -103,7 +122,7 @@ proc newFishServer*(): FishServer {.gcsafe.} =
     asyncCheck that.onGameStep(data)
 
   fh.handle(proto.TerminalInput):
-    that.commands.dispatch(data.input)
+    that.commands.dispatch(data.text)
 
   fh.handle(proto.Ping):
     asyncCheck that.onPing()

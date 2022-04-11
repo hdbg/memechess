@@ -28,7 +28,8 @@ proc createStart*(opts: JsObject): ChessGameStart =
         "blitz": ctBlitz,
         "bullet": ctBullet,
         "rapid": ctRapid,
-        "ultraBullet": ctUltrabullet
+        "ultraBullet": ctUltrabullet,
+        "correspondence": ctCorrespondence
       }.toTable
 
   let

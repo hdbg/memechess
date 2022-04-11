@@ -14,7 +14,7 @@ type
 
   EngineScore* = object
     kind*: EngineScoreKind
-    value*: int
+    value*: Option[int]
 
   EngineOption* = object
     name*: string
@@ -39,7 +39,7 @@ type
     refutation*, pv*: Option[seq[string]]
     multipv*: Option[uint]
 
-    score*: EngineScore
+    score*: Option[EngineScore]
 
     currmove*, str*: Option[string]
 
@@ -141,6 +141,24 @@ proc parseInfo(msg: string): EngineMessage =
 
   if rawPv.isSome:
     info.pv = some(rawPv.get.split())
+
+  if "score" in msg:
+    var scoreKind: string
+    get "score", msg, scoreKind, true
+
+    info.score = some(EngineScore())
+
+    case scoreKind
+    of "cp":
+      info.score.get.kind = eskCp
+      getOption "cp", msg, info.score.get.value
+    of "mate":
+      info.score.get.kind = eskMate
+      getOption "mate", msg, info.score.get.value
+    of "lowerbound":
+      info.score.get.kind = eskLowerbound
+    of "upperbound":
+      info.score.get.kind = eskUpperbound
 
   result.info = move(info)
 
