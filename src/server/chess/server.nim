@@ -1,5 +1,5 @@
 import shared/[frames, proto]
-import std/[asynchttpserver, asyncdispatch, options, random, strformat]
+import std/[asyncdispatch, options, random, strformat, math]
 import ws
 import commands
 import chronicles
@@ -69,14 +69,15 @@ proc eval(fs: FishServer): GuiMessage =
     evVars.my_time = uint(fs.gameState.clock.black)
 
   fs.prepareLimit(evVars)
-
   let evaluated = fs.gameState.opts
 
   result = GuiMessage(kind: gmkGo)
   result.movetime = some(evaluated.thinktime)
 
   fs.engine.getOption("UCI_LimitStrength").check = true
-  fs.engine.getOption("UCI_Elo").spin = int(evaluated.elo)
+
+  let uciElo = fs.engine.getOption("UCI_Elo")
+  uciElo.spin = math.clamp(int(evaluated.elo), uciElo.min..uciElo.max)
 
 proc sendInfo(fs: FishServer, msg: EngineMessage) {.async.} =
   let info = msg.info
@@ -88,11 +89,12 @@ proc sendInfo(fs: FishServer, msg: EngineMessage) {.async.} =
       score = info.score.get
       val = if score.value.isSome: score.value.get else: 0
       prefix = if val < 0: '-' else: '+'
-      color = if val < 0: "#52ec29" else: "#ec3829"
+      color = if val < 0: "#ec3829" elif val == 0: "#dfdb21" else: "#52ec29"
 
     fs.gameState.score = val
 
-    output.add &"[[b;{color};]{prefix}{$val}] "
+    output.add &"[[b;{color};]{$prefix}{$abs(val)}] "
+    # output.add &"{prefix}{$val} "
 
     if info.nodes.isSome:
       output.add &"nodes={$info.nodes.get} "
@@ -169,7 +171,6 @@ proc newFishServer*(): FishServer {.gcsafe.} =
   result.commands = newCommandDispatcher()
   result.configs = newConfigManager()
   result.engine = newChessEngine("engine")
-
 
   # TODO: Terminal command to change mode
   result.fishState.mode = fmRage

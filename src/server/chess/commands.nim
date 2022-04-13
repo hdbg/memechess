@@ -1,4 +1,4 @@
-import std/[tables, strutils, parseopt]
+import std/[tables, strutils, parseopt, strformat]
 
 export parseopt.CmdLineKind
 export tables.`[]`
@@ -81,6 +81,27 @@ proc dispatch*(cd: CommandDispatcher, cmdline: string) =
 
     return
 
+proc help(cd: CommandDispatcher): string =
+  result = "Usage:\n"
+
+  for c in cd.commands:
+    var line = c.name
+
+    for param in c.params:
+      var prefix, suffix: char
+      case param.variant
+      of cmdShortOption, cmdLongOption:
+        prefix = '['
+        suffix = ']'
+      of cmdArgument:
+        prefix = '<'
+        suffix = '>'
+      else: discard
+
+      line.add &" {prefix}{param.name}:{param.kind}{suffix}"
+
+    result.add line & '\n'
+
 when false:
   proc getOption[T](ctx: CommandContext, name: string): T =
     let raw = ctx.options[name]
@@ -102,4 +123,5 @@ when false:
     of "float": return parseFloat(raw)
     else: return T(raw)
 
-proc newCommandDispatcher*(): CommandDispatcher = new result
+proc newCommandDispatcher*(): CommandDispatcher =
+  new result

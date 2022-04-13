@@ -57,7 +57,8 @@ proc onEngineStep(sc: ShellCode, step: EngineStep) =
 
 proc onTerminalOutput(sc: ShellCode, output: TerminalOutput) =
   echo output.text
-  # sc.terminal.echo(output.text)
+  echo type(output.text)
+  print(sc.terminal, cstring(output.text))
 
 # ==========
 # Setup shit
@@ -91,15 +92,14 @@ proc setupHooks(sc: ShellCode) =
             black: step.clock.black.to(float)
           )
         )
-
     echo realStep
 
     sc.conn.send framify(realStep).cstring
 
   sc.rawCtrl.socket.handlers.move = toJs(moveHook)
 
-proc setupUI(sc: ShellCode) {.inline.} =
-  let tc = TerminalCfg(height: 100, width: 300)
+proc setupUI(sc: ShellCode) =
+  let tc = TerminalCfg(height: 100, width: 300, name: "Memechess Terminal".cstring, greetings: "Memechess Command Center (c) v.1.0".cstring, prompt: "mc> ", outputLimit: 0)
 
   createAnchor("game__meta", "fish-gui")
 
@@ -107,18 +107,17 @@ proc setupUI(sc: ShellCode) {.inline.} =
     var data = framify(TerminalInput(text: cmd)).cstring
     sc.conn.send data
 
+  sc.terminal.resize(300, 100)
+
 proc setupProto(sc: ShellCode) =
   sc.protocol.handle(EngineStep):
     if sc.rawOpts.data.game.status.id.to(int) != 20: return
     sc.onEngineStep(data)
 
   sc.protocol.handle(TerminalOutput):
-    if sc.rawOpts.data.game.status.id.to(int) != 20: return
-
     sc.onTerminalOutput(data)
 
 proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
-
   new result
 
   result.rawCtrl = ctrl
@@ -130,6 +129,8 @@ proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
   result.setupHooks
   result.setupUI
   result.setupProto
+
+  console.log result.terminal.settings()
 
   var conn = newWebsocket("ws://localhost:8080/fish")
 
