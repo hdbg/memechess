@@ -72,6 +72,10 @@ iterator search*(engine: ChessEngine, pos, limit: GuiMessage, game_id: string): 
   for m in engine.waitFor(emkBestMove):
     yield m
 
+proc getOption*(e: ChessEngine, name: string): EngineOption =
+  for opt in e.options:
+    if opt.name == name: return opt
+
 proc newChessEngine*(filepath: string): ChessEngine =
   new result
 

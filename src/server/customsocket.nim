@@ -53,8 +53,6 @@ proc newWebSocket*(
 
   client.headers = headers
 
-  when false:
-    client.headers = newHttpHeaders()
 
   if protocols.len > 0:
     client.headers["Sec-WebSocket-Protocol"] = protocols.join(", ")

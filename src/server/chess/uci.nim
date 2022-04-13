@@ -16,7 +16,7 @@ type
     kind*: EngineScoreKind
     value*: Option[int]
 
-  EngineOption* = object
+  EngineOption* = ref object
     name*: string
     case kind*: EngineOptionKind
     of eokCheck:
@@ -241,6 +241,18 @@ proc isDefault*(option: EngineOption): bool =
   of eokCheck:
     return option.check == option.checkDefault
   of eokButton: return true
+
+proc resetDefault*(option: var EngineOption) =
+  case option.kind
+  of eokCombo:
+    option.combo = option.comboDefault
+  of eokSpin:
+    option.spin = option.spinDefault
+  of eokString:
+    option.str = option.strDefault
+  of eokCheck:
+    option.check = option.checkDefault
+  of eokButton: discard
 
 proc `$`*(option: EngineOption): string =
   case option.kind

@@ -1,109 +1,41 @@
-import std/[asynchttpserver, asyncdispatch, asyncfutures, httpclient, strutils]
-import chronicles
-import std/[httpcore, uri]
-import customsocket
-import chess/server
-import injector
+import std/[asyncdispatch, os, distros, httpclient, distros, json]
+import fab
+import http
 
-const interceptPort = 8080
+const logo = """                                            __
+                                           /\ \
+  ___ ___      __    ___ ___      __    ___\ \ \___      __    ____    ____
+/' __` __`\  /'__`\/' __` __`\  /'__`\ /'___\ \  _ `\  /'__`\ /',__\  /',__\
+/\ \/\ \/\ \/\  __//\ \/\ \/\ \/\  __//\ \__/\ \ \ \ \/\  __//\__, `\/\__, `\
+\ \_\ \_\ \_\ \____\ \_\ \_\ \_\ \____\ \____\\ \_\ \_\ \____\/\____/\/\____/
+ \/_/\/_/\/_/\/____/\/_/\/_/\/_/\/____/\/____/ \/_/\/_/\/____/\/___/  \/___/ """
 
-proc intercept(req: Request) {.async gcsafe.} =
-  when defined trace: debug "intercept.received"
+proc downloadEngine() =
+  let client = newHttpClient()
 
-  const
-    domain = "https://lichess.org"
-    charSize = sizeof char
+  let
+    releasesData = client.getContent("https://api.github.com/repos/ianfab/Fairy-Stockfish/releases/latest")
+    releases = parseJson(releasesData)
 
-  let http = newAsyncHttpClient()
+  var targetName: string
 
-  var headers = req.headers
-  headers["host"] = "lichess.org"
+  if detectOs(Linux):
+    targetName = "fairy-stockfish-largeboard_x86-64"
+  elif detectOs(Windows):
+    targetName = "fairy-stockfish-largeboard_x86-64.exe"
 
-  let resp = await http.request(domain & uri.`$`(req.url), httpMethod = req.reqMethod,
-      headers = headers, body = req.body)
-
-  when defined trace: debug "lichess.answer", status = resp.status, headers = resp.headers
-
-  var
-    body = await inject(resp)
-    respHeaders = resp.headers
-
-  respHeaders["content-length"] = $(body.len * charSize)
-  respHeaders.del "transfer-encoding"
-
-  if respHeaders.hasKey "set-cookie":
-    respHeaders["set-cookie"] = respHeaders["set-cookie"].replace(" Domain=lichess.org;")
-
-  await req.respond(code = resp.code, content = $body,
-      headers = resp.headers)
+  for asset in releases["assets"].items():
+    echo asset["name"].getStr()
+    if asset["name"].getStr() == targetName:
+      client.downloadFile(asset["browser_download_url"].getStr, "engine")
+      return
 
 
-proc wsocket(req: Request) {.async gcsafe.} =
-  debug "ws.connect"
+when isMainModule:
+  purple(logo)
 
-  var sck = await newWebsocket(req)
+  if not os.fileExists("engine"): downloadEngine()
+  discard existsOrCreateDir("memechess")
+  discard existsOrCreateDir("memechess" / "configs")
 
-  var liSck = await customsocket.newWebsocket("wss://socket0.lichess.org" & $(req.url), req.headers)
-
-  var liMsg = liSck.receiveStrPacket()
-  var sckMsg = sck.receiveStrPacket()
-
-  while liSck.readyState == Open and sck.readyState == Open:
-    try:
-      await (liMsg or sckMsg)
-
-      if liMsg.finished:
-        var msg = liMsg.read
-        await sck.send msg
-
-        # when defined trace: debug "lisck.received", message=msg
-
-        liMsg = liSck.receiveStrPacket()
-
-      if sckMsg.finished:
-        var msg  = sckMsg.read
-        await liSck.send msg
-
-        # when defined trace: debug "sck.received", message=msg
-
-        sckMsg = sck.receiveStrPacket()
-
-    except WebSocketError:
-      break
-
-  liSck.close()
-  sck.close()
-
-proc startChess(req: Request) {.async, gcsafe.} =
-  var server {.global.} = newFishServer()
-
-  var chessSocket = await newWebsocket(req)
-
-  server.conn = chessSocket
-
-  while chessSocket.readyState == Open:
-    try:
-      let msg = await chessSocket.receiveStrPacket()
-      server.handle(msg)
-    except WebSocketError: return
-
-
-proc dispatch(req: Request) {.async, gcsafe.} =
-  let path = $req.url
-
-  if "v5" in path or "v6" in path: await wsocket(req)
-  elif "fish" in path: await startChess(req)
-  else: await intercept(req)
-
-proc main {.async.} =
-  var server = newAsyncHttpServer()
-
-  server.listen(Port(interceptPort))
-  let port = server.getPort
-
-  info "evilfish.serve", port = port.int
-
-  while true:
-    await server.acceptRequest(dispatch)
-
-waitFor main()
+  waitFor http.main()
