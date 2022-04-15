@@ -17,6 +17,8 @@ type
 
     apiMove: proc(movedata: JsObject): JsObject
 
+    vine: HTMLAudioElement
+
 proc onEngineStep(sc: ShellCode, step: EngineStep) =
   let
     before = step.move[0..1]
@@ -70,6 +72,9 @@ proc setupHooks(sc: ShellCode) =
   proc moveHook(step: JsObject): JsObject =
     result = sc.apiMove(step)
 
+    sc.vine.currentTime = cfloat(0.0)
+    sc.vine.play()
+
     let
       ply = sc.rawCtrl.lastPly()
 
@@ -103,8 +108,8 @@ proc setupUI(sc: ShellCode) =
 
   createAnchor("game__meta", "fish-gui")
 
-  sc.terminal = newTerminal("#fish-gui".toJs, tc) do(cmd: string):
-    var data = framify(TerminalInput(text: cmd)).cstring
+  sc.terminal = newTerminal("#fish-gui".toJs, tc) do(cmd: cstring):
+    var data = framify(TerminalInput(text: $cmd)).cstring
     sc.conn.send data
 
   sc.terminal.resize(300, 100)
@@ -123,6 +128,8 @@ proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
   result.rawCtrl = ctrl
   result.rawOpts = opts
   result.chessground = ctrl.chessground
+
+  result.vine = newAudio("https://www.myinstants.com/media/sounds/vine-boom.mp3".cstring)
 
   result.protocol = FramesHandler()
 

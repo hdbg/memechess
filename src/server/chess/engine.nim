@@ -1,6 +1,6 @@
-import std/[osproc, streams, strutils, options]
-import chronicles
+import std/[osproc, streams, options]
 import uci
+import chronicles
 
 type
   EngineOptionKind* = enum
@@ -72,7 +72,7 @@ iterator search*(engine: ChessEngine, pos, limit: GuiMessage, game_id: string): 
   for m in engine.waitFor(emkBestMove):
     yield m
 
-proc getOption*(e: ChessEngine, name: string): EngineOption =
+proc `[]`*(e: ChessEngine, name: string): EngineOption =
   for opt in e.options:
     if opt.name == name: return opt
 

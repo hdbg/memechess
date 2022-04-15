@@ -6,12 +6,10 @@ proc replaceRange(target: var string, begin, ending, content: string) =
   let startIndex = target.find(begin)
 
   if startIndex == -1:
-    # error "defect.start", begin=begin, ending=ending, content=content
     return
 
   let endIndex = target.find(ending, start=startIndex)
   if endIndex == -1:
-    # error "defect.end", begin=begin, ending=ending, content=content
     return
 
   target[startIndex..(endIndex - 1 + ending.len)] = content

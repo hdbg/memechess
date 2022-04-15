@@ -2,7 +2,7 @@ import std/[dom, jsffi, options, jsconsole]
 import jquery
 
 type
-  Callback = proc(cmd: string)
+  Callback = proc(cmd: cstring)
 
   TerminalEchoOptions* = object
     raw*: bool # Allow display raw html

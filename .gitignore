@@ -1,7 +1,8 @@
 nimcache/
-evilfish
 outputGotten.txt
 /src/shellcode.js
 /tests/test_uci
-memechess/
-engine
+mchess/
+engine.exe
+memechess
+memechess.exe

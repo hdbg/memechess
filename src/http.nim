@@ -1,8 +1,8 @@
 import std/[asynchttpserver, asyncdispatch, asyncfutures, httpclient, strutils, options]
 import chronicles
 import std/[httpcore, uri]
-import server/customsocket
-import server/chess/server
+import customsocket
+import server/fish
 import injector
 
 const interceptPort = 8080
