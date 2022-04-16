@@ -1,0 +1,80 @@
+name = "UltraBullet Rage config"
+kind = "ckRage"
+time = ["ctUltrabullet"]
+# input = my_time, enemy_time, my_score, enemy_score, ply
+
+# debut    !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
+    # time
+
+    # time end
+    # ply
+[[events]]
+condition = {lhs = "ply", op = "<=", rhs = "2"} # debut (first move)
+delay = "500.0 + random(600.0)"
+elo = "2000"
+thinktime = "100.0" 
+
+[[events]]
+condition = {lhs = "enemy_time", op = ">=", rhs = "11"} # debut (first 4 seconds)
+delay = "(random(20.0) + floor(random(2.0)) * random(100.0)) * (enemy_time - 10)"
+elo = "1000"
+thinktime = "100" 
+    # ply end
+# end      !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
+
+# end game !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
+    # score
+
+    # score end
+    # time
+[[events]]
+condition = {lhs = "my_time", op = "<", rhs = "1.24"}
+delay = "max(1, random(100.0))"
+elo = "max(1300, min(my_score, 2400))"
+thinktime = "30.0" 
+
+[[events]]
+condition = {lhs = "my_time", op = "<", rhs = "3.2"}
+delay = "max(1, random(220.0))"
+elo = "max(1300, min(my_score, 2400))"
+thinktime = "50.0" 
+
+[[events]]
+condition = {lhs = "my_time", op = "<", rhs = "7"}
+delay = "100.0"
+elo = "1000.0"
+thinktime = "random(20.0) + floor(random(2.0)) * (random(1000.0) + 400)" 
+    # time end
+# end      !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  ! 
+
+# mid game !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
+    # score
+[[events]]
+condition = {lhs = "my_score", op = "<", rhs = "800"}
+delay = "100 + random(800.0)"
+elo = "1600.0"
+thinktime = "100.0" 
+    # score end
+    # time
+[[events]]
+condition = {lhs = "my_time", op = ">", rhs = "enemy_time"}
+delay = "400 + max(0, 1000.0 * ((my_time - enemy_time) - random(1.0)))"
+elo = "900.0"
+thinktime = "100.0" 
+
+[[events]]
+condition = {lhs = "my_time", op = "<", rhs = "enemy_time"}
+delay = "floor(random(2.0)) * (random(600.0))"
+elo = "1000.0"
+thinktime = "100 + max(20, 100 - enemy_time * 8)" 
+    # time end
+# end      !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
+
+
+
+# it's not a bug, it's a feature!
+[[events]] 
+condition = {lhs = "0.0", op = "==", rhs = "0.0"}
+delay = "0"
+elo = "2000.0"
+thinktime = "40.0" 
