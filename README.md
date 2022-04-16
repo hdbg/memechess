@@ -73,10 +73,10 @@ Activates when player time left multiplied by 2 is less than 30 seconds.
 [[events]]
 condition = {lhs = "my_score", op = ">", rhs = "500"}
 delay = "100.0"
-elo = "500 ** 3"
+elo = "500 * 3"
 thinktime = "50.0"
 ```
 
 ---
 # Scripts
-Working in progress. 
+Work in progress. 
