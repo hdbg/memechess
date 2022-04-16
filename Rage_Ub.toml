@@ -60,7 +60,6 @@ thinktime = "100 + max(20, 100 - enemy_time * 8)"
 
 
 
-
 # it's not a bug, it's a feature!
 [[events]] 
 condition = {lhs = "0.0", op = "==", rhs = "0.0"}
