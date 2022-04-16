@@ -1,6 +1,6 @@
 import unittest2
 
-import chess/[engine, uci]
+import server/chess/[engine, uci]
 import std/[json, options]
 
 suite "Engine":

@@ -37,11 +37,8 @@ proc addCommand*(cd: CommandDispatcher, name: string, params: seq[CommandParamet
   cd.commands.add command
 
 template onCommand*(cd: CommandDispatcher, name: string, params: seq[CommandParameter], brief: string = "", body: untyped) =
-  proc cb(data: CommandContext) {.gensym.} =
-    let ctx {.inject.} = data
+  cd.addCommand(name, params, brief) do (ctx: CommandContext):
     body
-
-  cd.addCommand(name, params, brief, cb)
 
 proc dispatch*(cd: CommandDispatcher, cmdline: string) =
   for command in cd.commands:
