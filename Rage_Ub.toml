@@ -3,10 +3,7 @@ kind = "ckRage"
 time = ["ctUltrabullet"]
 # input = my_time, enemy_time, my_score, enemy_score, ply
 
-# debut    !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
-    # time
-
-    # time end
+# debut    !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
     # ply
 [[events]]
 condition = {lhs = "ply", op = "<=", rhs = "2"} # debut (first move)
@@ -20,12 +17,9 @@ delay = "(random(20.0) + floor(random(2.0)) * random(100.0)) * (enemy_time - 11.
 elo = "1000"
 thinktime = "100" 
     # ply end
-# end      !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
+# end      !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
 
-# end game !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
-    # score
-
-    # score end
+# end game !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
     # time
 [[events]]
 condition = {lhs = "my_time", op = "<", rhs = "1.24"}
@@ -45,16 +39,9 @@ delay = "300.0"
 elo = "1000.0"
 thinktime = "random(20.0) + floor(random(2.0)) * (random(1000.0))" 
     # time end
-# end      !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  ! 
+# end      !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
 
-# mid game !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
-    # score
-# [[events]]
-# condition = {lhs = "my_score", op = "<", rhs = "800"}
-# delay = "100 + random(800.0)"
-# elo = "1600.0"
-# thinktime = "100.0" 
-    # score end
+# mid game !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
     # time
 [[events]]
 condition = {lhs = "my_time", op = ">", rhs = "enemy_time"}
@@ -68,7 +55,7 @@ delay = "floor(random(2.0)) * (random(600.0))"
 elo = "950.0"
 thinktime = "100 + max(20, 100 - enemy_time * 8)" 
     # time end
-# end      !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
+# end      !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
 
 
 
