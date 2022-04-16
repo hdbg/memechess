@@ -41,9 +41,9 @@ thinktime = "50.0"
 
 [[events]]
 condition = {lhs = "my_time", op = "<", rhs = "7"}
-delay = "100.0"
+delay = "300.0"
 elo = "1000.0"
-thinktime = "random(20.0) + floor(random(2.0)) * (random(1000.0) + 400)" 
+thinktime = "random(20.0) + floor(random(2.0)) * (random(1000.0))" 
     # time end
 # end      !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  ! 
 
@@ -58,7 +58,7 @@ thinktime = "100.0"
     # time
 [[events]]
 condition = {lhs = "my_time", op = ">", rhs = "enemy_time"}
-delay = "400 + max(0, 1000.0 * ((my_time - enemy_time) - random(1.0)))"
+delay = "400 + max(0, 1000.0 * ((my_time - enemy_time) - random(2.0) + 2))"
 elo = "850.0"
 thinktime = "100.0" 
 
