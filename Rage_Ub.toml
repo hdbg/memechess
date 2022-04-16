@@ -49,11 +49,11 @@ thinktime = "random(20.0) + floor(random(2.0)) * (random(1000.0))"
 
 # mid game !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !  !
     # score
-[[events]]
-condition = {lhs = "my_score", op = "<", rhs = "800"}
-delay = "100 + random(800.0)"
-elo = "1600.0"
-thinktime = "100.0" 
+# [[events]]
+# condition = {lhs = "my_score", op = "<", rhs = "800"}
+# delay = "100 + random(800.0)"
+# elo = "1600.0"
+# thinktime = "100.0" 
     # score end
     # time
 [[events]]
