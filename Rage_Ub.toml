@@ -15,8 +15,8 @@ elo = "2000"
 thinktime = "100.0" 
 
 [[events]]
-condition = {lhs = "enemy_time", op = ">=", rhs = "12"} # debut (first 3 seconds)
-delay = "(random(20.0) + floor(random(2.0)) * random(100.0)) * (enemy_time - 11)"
+condition = {lhs = "enemy_time", op = ">=", rhs = "12.5"} # debut (first 2.5 seconds)
+delay = "(random(20.0) + floor(random(2.0)) * random(100.0)) * (enemy_time - 11.5)"
 elo = "1000"
 thinktime = "100" 
     # ply end
