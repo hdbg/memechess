@@ -59,7 +59,7 @@ thinktime = "100.0"
 [[events]]
 condition = {lhs = "my_time", op = ">", rhs = "enemy_time"}
 delay = "400 + max(0, 1000.0 * ((my_time - enemy_time) - random(1.0)))"
-elo = "900.0"
+elo = "850.0"
 thinktime = "100.0" 
 
 [[events]]
