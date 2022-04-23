@@ -16,7 +16,7 @@ proc createAnchor*(parent: string, child_id: string) =
 proc toSome*[T](data: JsObject): Option[T] = some(data.to(T))
 proc `$`*(data: JsObject): string = $(data.to(cstring))
 
-proc createStart*(opts: JsObject): ChessGameStart =
+proc createStart*(opts: JsObject): GameStart =
   const
       varTable = {
         "Standard": cvStandard,
@@ -46,7 +46,7 @@ proc createStart*(opts: JsObject): ChessGameStart =
   if data.clock != jsUndefined:
     let clock = data.clock
 
-    result.clock = ChessClock(
+    result.clock = Clock(
       white: clock.white.to(float),
       black: clock.black.to(float)
     )
@@ -56,7 +56,7 @@ proc createStart*(opts: JsObject): ChessGameStart =
 
   for step in (data.steps.to(seq[JsObject])):
     if step.uci != jsNull and step.san != jsNull:
-      result.steps.add ChessStep(
+      result.steps.add Step(
         fen: $step.fen,
         uci: some($step.uci),
         san: some($step.san),

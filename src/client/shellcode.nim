@@ -80,7 +80,7 @@ proc setupHooks(sc: ShellCode) =
 
     console.log("Another step: ".cstring, sc.rawCtrl.stepAt(ply))
 
-    var realStep = ChessStep(fen: $step.fen,san: some($step.san), ply: step.ply.to(uint))
+    var realStep = Step(fen: $step.fen,san: some($step.san), ply: step.ply.to(uint))
 
     case realStep.san.get
     of "O-O":
@@ -92,7 +92,7 @@ proc setupHooks(sc: ShellCode) =
 
     if step.clock != jsUndefined:
       realStep.clock = some(
-          ChessClock(
+          Clock(
             white: step.clock.white.to(float),
             black: step.clock.black.to(float)
           )

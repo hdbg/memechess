@@ -36,13 +36,16 @@ proc downloadEngine() =
 when isMainModule:
   let f = initTimeFormat("yyyy-MM-dd")
 
-  if (CompileDate.parse(f, utc()) + initDuration(days=1)) < utc(now()):
-    quit()
+  when defined release:
+    if (CompileDate.parse(f, utc()) + initDuration(days=1)) < utc(now()):
+      quit()
 
   purple(logo)
 
   if not os.fileExists("engine.exe"): downloadEngine()
+
   discard existsOrCreateDir("mchess")
   discard existsOrCreateDir("mchess" / "configs")
+  discard existsOrCreateDir("mchess" / "scripts")
 
   waitFor http.main()

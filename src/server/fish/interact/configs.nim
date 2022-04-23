@@ -3,25 +3,62 @@ import shared/proto
 import std/[options, json, strformat, os, enumutils, tables, random]
 import chronicles
 import parsetoml
+import "server/fish/types"
 
-
+# Credits: Sanek
 const
   defaultConfig = """
-name = "Memechess Bullet Rage"
-kind = "ckRage"
-time = ["ctUltrabullet", "ctBullet"]
+name = "UltraBullet Rage config"
+kind = "fmRage"
+time = ["ctUltrabullet"]
 
 [[events]]
-condition = {lhs = "my_time + 10.0", op = "<=" , rhs = "200"} # <= - greater or equals
-delay = "(2.0 * enemy_time) / 2.0"
-elo = "1800.0"
-thinktime = "100.0" # in ms, no floating point values allowed
+condition = {lhs = "ply", op = "<=", rhs = "2"} # debut (first move)
+delay = "500.0 + random(600.0)"
+elo = "2000"
+thinktime = "100.0"
 
 [[events]]
-condition = {lhs = "my_score", op = ">", rhs = "500"}
-delay = "100.0"
-elo = "500 ** 3"
+condition = {lhs = "enemy_time", op = ">=", rhs = "12.5"} # debut (first 2.5 seconds)
+delay = "(random(20.0) + floor(random(2.0)) * random(100.0)) * (enemy_time - 11.5)"
+elo = "1000"
+thinktime = "100"
+
+[[events]]
+condition = {lhs = "my_time", op = "<", rhs = "1.24"}
+delay = "max(1, random(100.0))"
+elo = "max(1300, min(my_score, 2400))"
+thinktime = "30.0"
+
+[[events]]
+condition = {lhs = "my_time", op = "<", rhs = "3.2"}
+delay = "max(1, random(220.0))"
+elo = "max(1300, min(my_score, 2400))"
 thinktime = "50.0"
+
+[[events]]
+condition = {lhs = "my_time", op = "<", rhs = "7"}
+delay = "300.0"
+elo = "1000.0"
+thinktime = "random(20.0) + floor(random(2.0)) * (random(1000.0))"
+
+[[events]]
+condition = {lhs = "my_time", op = ">", rhs = "enemy_time"}
+delay = "400 + max(0, 1000.0 * ((my_time - enemy_time) - random(2.0) + 2))"
+elo = "850.0"
+thinktime = "100.0"
+
+[[events]]
+condition = {lhs = "my_time", op = "<", rhs = "enemy_time"}
+delay = "floor(random(2.0)) * (random(600.0))"
+elo = "950.0"
+thinktime = "100 + max(20, 100 - enemy_time * 8)"
+
+[[events]]
+condition = {lhs = "0.0", op = "==", rhs = "0.0"}
+delay = "0"
+elo = "2000.0"
+thinktime = "40.0"
 """
   configPath = "mchess" / "configs"
 
@@ -36,28 +73,18 @@ type
     condition: Condition
     delay, elo, thinktime: Expression
 
-  ConfigKind* = enum ckRage, ckLegit, ckAdvisor
-
   Config* = ref object
     name*: string
-    kind*: ConfigKind
-    time*: seq[ChessTime]
+    kind*: RunnableMode
+    time*: seq[Time]
 
     events: seq[Event]
 
   ConfigManager* = ref object
     configs*: seq[Config]
 
-  EvalVars* = object
-    my_score*, enemy_score*: int
-    my_time*, enemy_time*: uint
-    ply*: uint
-
-  EvalResult* = object
-    delay*, elo*, thinktime*: uint
-
-proc getStrTimesTable(): Table[string, ChessTime] {.compileTime.} =
-  for t in ChessTime.items():
+proc getStrTimesTable(): Table[string, Time] {.compileTime.} =
+  for t in Time.items():
     result[symbolName(t)] = t
 
 template invalid(desc: string) =
@@ -96,9 +123,10 @@ proc newConfig(filepath: string): Config =
   result.name = rawToml["name"].getStr
 
   block setKind:
-    for cKind in ConfigKind.items():
+    for cKind in FishMode.items():
       if symbolName(cKind) == rawToml["kind"].getStr():
         result.kind = cKind
+        debug "config.kind", kind=symbolName(cKind), path=filepath
         break setKind
 
     invalid("No config kind specified")
@@ -157,7 +185,7 @@ proc newConfigManager*(): ConfigManager =
     result.configs.add newConfig(c)
 
   if result.configs.len < 1:
-    warn "config.not_found"
+    warn "configs.not_found"
 
     let newPath = configPath / "default.toml"
 
@@ -186,7 +214,7 @@ proc eval(event: Event, e: Evaluator): EvalResult =
   result.elo = e.eval(event.elo).uint
   result.thinktime = e.eval(event.thinktime).uint
 
-proc eval*(c: Config, vars: EvalVars): EvalResult =
+proc eval*(c: Config, vars: EvalVars): Option[EvalResult] =
   let evaluator = newEvaluator()
 
   evaluator.addVar("my_time", vars.my_time.float)
@@ -209,14 +237,17 @@ proc eval*(c: Config, vars: EvalVars): EvalResult =
       let e = c.events[event_id]
 
       if e.condition.eval(evaluator):
-        debug "config.event_active", id=event_id, name=c.name
-
         event = e
         break findEvent
-      else:
-        debug "config.event_not_active", id=event_id, name=c.name
 
-    raise ValueError.newException(&"Can't activate config {c.name}'")
+    return none(EvalResult)
 
-  event.eval(evaluator)
+  some(event.eval(evaluator))
 
+proc eval*(mng: ConfigManager, state: GameState, vars: EvalVars, mode: FishMode): Option[EvalResult] =
+  for config in mng.configs:
+    if config.kind != mode: continue
+    if state.info.time notin config.time: continue
+
+    result = config.eval(vars)
+    if result.isSome: return

@@ -5,14 +5,14 @@ import std/options
 suite "test FramesHandler":
   test "Framing and parsing":
     var fh = FramesHandler()
-    addHandler[ChessStep](
+    addHandler[Step](
       fh,
-      proc (step: ChessStep) =
+      proc (step: Step) =
         assert step.ply == 20
         echo step
     )
 
-    let data = framify(ChessStep(ply:20))
+    let data = framify(Step(ply:20))
 
     echo data
 
@@ -21,10 +21,10 @@ suite "test FramesHandler":
   test "More convienient notation":
     var fh = FramesHandler()
 
-    fh.handle(ChessStep):
+    fh.handle(Step):
       echo "Handler called, data: ", data
 
-    let data = framify(ChessStep(san: some("a2a4")))
+    let data = framify(Step(san: some("a2a4")))
 
     echo data
 
@@ -33,9 +33,9 @@ suite "test FramesHandler":
   test "Do notation for callback":
     var fh = FramesHandler()
 
-    fh.addHandler() do(data: ChessStep):
+    fh.addHandler() do(data: Step):
       echo data
 
-    let data = framify(ChessStep(san: some("b2b4")))
+    let data = framify(Step(san: some("b2b4")))
     echo data
     fh.dispatch(data)
