@@ -1,35 +1,49 @@
-import std/[asyncdispatch, os, distros, httpclient, distros, json]
-import std/[times]
+import std/[asyncdispatch, os, distros, httpclient, json, times]
+import std/[strutils, strformat, times]
 import fab
 import http
+import chronicles
 
-const logo = """                                            __
+const
+  logo = """                                            __
                                            /\ \
   ___ ___      __    ___ ___      __    ___\ \ \___      __    ____    ____
 /' __` __`\  /'__`\/' __` __`\  /'__`\ /'___\ \  _ `\  /'__`\ /',__\  /',__\
 /\ \/\ \/\ \/\  __//\ \/\ \/\ \/\  __//\ \__/\ \ \ \ \/\  __//\__, `\/\__, `\
 \ \_\ \_\ \_\ \____\ \_\ \_\ \_\ \____\ \____\\ \_\ \_\ \____\/\____/\/\____/
  \/_/\/_/\/_/\/____/\/_/\/_/\/_/\/____/\/____/ \/_/\/_/\/____/\/___/  \/___/ """
+  footer = block:
+    let
+     realFooter = "Gigachad Software 2022 (c)"
+
+     logoLines = logo.splitLines
+     logoLineLength = len(logoLines[len(logoLines) div 2])
+
+    repeat(' ', logoLineLength - realFooter.len) & realFooter
 
 proc downloadEngine() =
+  info "engine.downloading"
+
   let client = newHttpClient()
 
   let
     releasesData = client.getContent("https://api.github.com/repos/ianfab/Fairy-Stockfish/releases/latest")
     releases = parseJson(releasesData)
 
-  var targetName: string
+  let targetName = block:
+    var result = "fairy-stockfish-largeboard_x86-64"
 
-  if detectOs(Linux):
-    targetName = "fairy-stockfish-largeboard_x86-64"
-  elif detectOs(Windows):
-    targetName = "fairy-stockfish-largeboard_x86-64.exe"
+    if detectOs(Windows):
+      result.add ".exe"
+
+    result
 
   for asset in releases["assets"].items():
     if asset["name"].getStr() == targetName:
-      client.downloadFile(asset["browser_download_url"].getStr, "engine.exe")
+      client.downloadFile(asset["browser_download_url"].getStr, "mchess" / "engine.exe")
       return
 
+  info "engine.ok"
 
 # MEME LICENSE CHECK
 
@@ -41,11 +55,20 @@ when isMainModule:
       quit()
 
   purple(logo)
+  blue(footer)
 
-  if not os.fileExists("engine.exe"): downloadEngine()
+  let prefix =
+    when not defined release:
+      "Dev Build: "
+    else:
+      "Build: "
+
+  echo &"{prefix} {CompileDate} {CompileTime}"
 
   discard existsOrCreateDir("mchess")
   discard existsOrCreateDir("mchess" / "configs")
   discard existsOrCreateDir("mchess" / "scripts")
+
+  if not os.fileExists("mchess" / "engine.exe"): downloadEngine()
 
   waitFor http.main()

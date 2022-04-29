@@ -14,23 +14,7 @@ proc replaceRange(target: var string, begin, ending, content: string) =
 
   target[startIndex..(endIndex - 1 + ending.len)] = content
 
-static:
-  var
-    output {.compileTime.}: string
-    eCode {.compileTime.}: int
-
-  when defined release:
-    (output, eCode) = gorgeEx "nim js -d:release client/loader.nim"
-  else:
-    (output, eCode) = gorgeEx "nim js client/loader.nim"
-
-  if eCode == 1:
-    echo output
-    raise ValueError.newException("Client compilation error")
-
-const shellCode = staticRead"shellcode.js"
-
-proc inject*(resp: AsyncResponse): Future[string] {.async.} =
+proc inject*(resp: AsyncResponse, shellCode: string): Future[string] {.async.} =
   let body = await resp.body()
 
   if resp.headers.hasKey "content-encoding":
@@ -47,11 +31,13 @@ proc inject*(resp: AsyncResponse): Future[string] {.async.} =
 
   block scripts:
     const
-      shellcodeScript = &"<script>{shellCode}</script>"
       jQueryScript = "<script src=\"https://code.jquery.com/jquery-3.2.1.min.js\"></script>"
 
       jTerminalScript = "<script src=\"https://unpkg.com/jquery.terminal/js/jquery.terminal.min.js\"></script>"
       jTerminalStyle = "<link href=\"https://unpkg.com/jquery.terminal/css/jquery.terminal.min.css\" rel=\"stylesheet\"/>"
+
+    let
+      shellcodeScript = fmt"<script>{shellCode}</script>"
 
       all = jQueryScript & jTerminalScript & shellcodeScript & jTerminalStyle
 

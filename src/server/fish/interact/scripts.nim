@@ -1,16 +1,34 @@
 import server/fish/types
 import server/fish/chess/engine as ce
-import server/fish/chess/uci
 import shared/proto
 
 import chronicles
-
+import zippy
 import nimscripter
 
-import std/[os, options, macros]
+import std/[os, options, macros, tables, md5]
 
-const scriptsPath = "mchess" / "scripts"
+const
+  scriptsPath = "mchess" / "scripts"
+  stdPath = "mchess" / "stdlib"
 
+const stdFiles = block:
+  var result = initTable[string, tuple[hash, content: string]]()
+
+  let foundPath = parentDir(currentSourcePath()) / "stdlib"
+
+  for dir in walkDirRec(foundPath, checkDir = true):
+    let
+      relative = relativePath(dir, foundPath)
+      content = staticRead(dir)
+
+    result[relative] = (
+      hash: content.getMD5,
+      content: content
+    )
+
+  echo result
+  result
 # Scripts types
 
 type
@@ -30,7 +48,7 @@ converter toOption[T](p: PseudoOption[T]): Option[T] =
   if p.isSome:
     result = options.some(p.val)
   else:
-    result = option.none(T)
+    result = options.none[T]()
 
 # Scripts
 
@@ -39,14 +57,34 @@ type
     engine: ChessEngine
     scripts: seq[Interpreter]
 
+proc deployStd() =
+  discard existsOrCreateDir stdPath
+
+  for (filepath, fileData) in stdFiles.pairs():
+    let realPath = stdPath / filepath
+
+    for d in filepath.parentDirs(fromRoot=true, inclusive=false):
+      discard existsOrCreateDir(stdPath / d)
+
+    if not fileExists(realPath):
+      writeFile(realPath, fileData.content)
+    else:
+      let fileHash = getMD5(readFile(realPath))
+
+      if fileHash != fileData.hash:
+        error "corrupted", file=filepath
+
 proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
   result = new ScriptsManager
 
   result.engine = engine
   result.scripts = @[]
 
+  deployStd()
+
   exportTo(
     memeScript,
+
     EvalResult,
     EvalVars,
     # ChessEngine,
@@ -60,17 +98,13 @@ proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
 
     Step,
     GameStart,
-    GameState
-  )
+    GameState,
 
-  # Procs
-  exportTo(
-    memeScript,
-
-    some,
-    none,
-    isSome,
-    isNone
+    # procs
+    # some,
+    # none,
+    # isSome,
+    # isNone
   )
 
   # callbacks
@@ -85,7 +119,12 @@ proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
   for s in walkFiles(scriptsPath / "*.nims"):
     let scriptCode = readFile(s)
 
-    var scriptUnit = loadScript(scriptCode.NimScriptFile, scriptSpace, modules = ["options"])
+    var scriptUnit = loadScript(
+      scriptCode.NimScriptFile,
+      scriptSpace,
+      modules = ["options"],
+      stdPath = stdPath
+    )
 
     if scriptUnit.isSome:
       result.scripts.add move(scriptUnit.get)

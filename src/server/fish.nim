@@ -1,6 +1,8 @@
-import shared/[frames, proto]
 import std/[asyncdispatch, options, random, strformat, math]
-import std/[tables]
+import std/[tables, os]
+
+import shared/[frames, proto]
+
 import ws
 import chronicles
 
@@ -112,7 +114,7 @@ proc newFishServer*(): FishServer {.gcsafe.} =
   result.proto = FramesHandler()
   result.commands = newCommandDispatcher()
 
-  result.engine = newChessEngine("engine.exe")
+  result.engine = newChessEngine("mchess" / "engine.exe")
 
   result.configs = newConfigManager()
   result.scripts = newScriptsManager(result.engine)
