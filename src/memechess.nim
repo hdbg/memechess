@@ -1,4 +1,5 @@
 import std/[asyncdispatch, strutils, strformat, times]
+
 import termstyle
 import chronicles
 
@@ -20,9 +21,16 @@ const
     repeat(' ', logoLineLength - realFooter.len) & realFooter
 
 
+# Setup error hook
+unhandledExceptionHook = proc(e: ref Exception) =
+  when defined release:
+    echo red e.name
+  else:
+    echo red e.msg
+
+  quit(QuitFailure)
 
 # MEME LICENSE CHECK
-
 let f = initTimeFormat("yyyy-MM-dd")
 
 when defined release:
