@@ -27,10 +27,9 @@ const stdFiles = block:
       content: content
     )
 
-  echo result
   result
-# Scripts types
 
+# Scripts types
 type
   PseudoOption[T] = ref object
     val: T
@@ -73,8 +72,11 @@ proc deployStd() =
 
       if fileHash != fileData.hash:
         error "corrupted", file=filepath
+        writeFile(realPath, fileData.content)
 
 proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
+  discard existsOrCreateDir("mchess" / "scripts")
+
   result = new ScriptsManager
 
   result.engine = engine

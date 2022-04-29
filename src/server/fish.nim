@@ -107,6 +107,8 @@ proc onPing(fs: FishServer) {.async.} = await fs.conn.send(framify(PingResponse(
 
 
 proc newFishServer*(): FishServer {.gcsafe.} =
+  discard existsOrCreateDir("mchess")
+
   randomize()
 
   new result

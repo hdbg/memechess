@@ -1,5 +1,5 @@
 import std/[asynchttpserver, asyncdispatch, asyncfutures, httpclient, strutils, options]
-import std/[httpcore, uri, browsers, strformat]
+import std/[httpcore, uri, strformat]
 import chronicles
 import server/fish
 
@@ -99,19 +99,15 @@ proc wsocket(req: Request) {.async gcsafe.} =
   sck.close()
 
 proc startChess(req: Request) {.async, gcsafe.} =
-  var server {.global.}: Option[FishServer]
-
-  if server.isNone:
-    server = some(newFishServer())
+  var server {.global.} = newFishServer()
 
   var chessSocket = await newWebsocket(req)
-
-  get(server).conn = chessSocket
+  server.conn = chessSocket
 
   while chessSocket.readyState == Open:
     try:
       let msg = await chessSocket.receiveStrPacket()
-      get(server).handle(msg)
+      server.handle(msg)
     except WebSocketError: return
 
 
@@ -128,9 +124,7 @@ proc main* {.async.} =
   server.listen(Port(interceptPort))
   let port = server.getPort
 
-  info "evilfish.serve", port = port.int
-
-  openDefaultBrowser(fmt"http://localhost:{interceptPort}")
+  info "memechess.ready", port = port.int
 
   while true:
     await server.acceptRequest(dispatch)
