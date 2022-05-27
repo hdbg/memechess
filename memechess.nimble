@@ -1,6 +1,6 @@
 # Package
 
-version       = "1.0.1"
+version       = "1.1.0"
 author        = "hdbg"
 description   = "Memechess: Chess bot software"
 license       = "Proprietary"
@@ -22,7 +22,6 @@ when defined(nimdistros):
   else:
     foreignDep "openssl"
   foreignDep "upx"
-
 
 import std/strformat
 task release, "Build release":
