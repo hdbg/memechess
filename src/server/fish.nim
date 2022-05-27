@@ -1,4 +1,4 @@
-import std/[asyncdispatch, options, random, strformat, math]
+import std/[asyncdispatch, options, random]
 import std/[tables, os]
 
 import shared/[frames, proto]

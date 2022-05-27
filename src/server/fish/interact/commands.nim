@@ -3,8 +3,6 @@ import std/[tables, strutils, parseopt, strformat, options]
 export parseopt.CmdLineKind
 export tables.`[]`
 
-import chronicles
-
 type
   CommandCallback = proc(ctx: CommandContext)
 

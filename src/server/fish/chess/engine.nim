@@ -9,13 +9,6 @@ when defined Linux:
 export uci
 
 type
-  EngineOptionKind* = enum
-    eokCheck,
-    eokSpin,
-    eokCombo,
-    eokButton,
-    eokString
-
   ChessEngine* = ref object
     program: Process
     stdin, stdout, stderr: Stream
@@ -48,9 +41,6 @@ proc send(engine: ChessEngine, msg: GuiMessage) =
   engine.stdin.write line
   engine.stdin.flush()
 
-proc send(engine: ChessEngine, kind: GuiMessageKind) =
-  engine.send GuiMessage(kind: kind)
-
 iterator waitFor*(engine: ChessEngine, kind: EngineMessageKind): EngineMessage =
   var msg = none(EngineMessage)
 
@@ -62,7 +52,6 @@ iterator waitFor*(engine: ChessEngine, kind: EngineMessageKind): EngineMessage =
 proc `[]`*(e: ChessEngine, name: string): Option[EngineOption] =
   for opt in e.options:
     if opt.name == name: return opt.some
-
 
 proc downloadEngine(path: string) =
   let client = newHttpClient()

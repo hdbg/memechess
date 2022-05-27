@@ -1,5 +1,5 @@
-import std/[asynchttpserver, asyncdispatch, asyncfutures, httpclient, strutils, options]
-import std/[httpcore, uri, strformat]
+import std/[asynchttpserver, asyncdispatch, asyncfutures, httpclient]
+import std/[httpcore, uri, strutils]
 import chronicles
 import server/fish
 

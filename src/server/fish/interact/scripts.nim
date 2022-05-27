@@ -30,14 +30,11 @@ const stdFiles = block:
 
 # Scripts types
 type
-  PseudoOption[T] = ref object
+  Optionable[T] = ref object
     val: T
     has: bool
 
-proc isSome[T](op: PseudoOption[T]): bool = op.has
-proc isNone[T](op: PseudoOption[T]): bool = not op.has
-
-converter toOption[T](p: PseudoOption[T]): Option[T] =
+converter toOption[T](p: Optionable[T]): Option[T] =
   if p.isSome:
     result = options.some(p.val)
   else:
@@ -85,7 +82,7 @@ proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
     EvalVars,
     # ChessEngine,
     # EngineOption,
-    PseudoOption,
+    Optionable,
 
     Clock,
     Variant,
@@ -95,13 +92,15 @@ proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
     Step,
     GameStart,
     GameState,
-
-    # procs
-    # some,
-    # none,
-    # isSome,
-    # isNone
   )
+
+  exportCode(memeScript):
+    proc isSome[T](op: Optionable[T]): bool = op.has
+    proc isNone[T](op: Optionable[T]): bool = not op.has
+
+    proc some[T](val: T): Optionable[T] = Optionable[T](value: val, has: true)
+    proc none[T](): Optionable[T] = Optionable[T](has: false)
+    proc none(T: typedesc): Optionable[T] = Optionable[T](has: false)
 
   # callbacks
   addCallable(memeScript):

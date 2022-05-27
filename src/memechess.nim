@@ -1,7 +1,5 @@
-import std/[asyncdispatch, strutils, strformat, times]
-
+import std/[asyncdispatch, strutils, strformat]
 import termstyle
-import chronicles
 
 const
   logo = """                                            __
