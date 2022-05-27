@@ -24,12 +24,20 @@ when defined(nimdistros):
   foreignDep "upx"
 
 import std/strformat
-task release, "Build release":
-  const
-    binName = when defined(Linux): "memechess" else: "memechess.exe"
 
+proc buildRelease(name: string, opts: string = "",  upx: bool = false) =
   mkdir "bin"
-  selfExec &"-d:release,danger,strip --opt:size -o:{binName} --outdir:bin c src/memechess"
 
-  when defined(Linux):
-    exec(&"upx -9 bin/{binName}")
+  selfExec &"-d:release,danger,strip {opts} --opt:size -o:{name} --outdir:bin c src/memechess.nim"
+
+  if upx:
+    exec(&"upx -9 bin/{name}")
+
+task win_release, "Build windows release":
+  when defined(Windows):
+    buildRelease("memechess.exe")
+  elif defined(Linux):
+    buildRelease("memechess.exe", "-d:mingw", true)
+
+task linux_release, "Build linux release":
+  buildRelease("memechess", upx=true)
