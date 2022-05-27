@@ -2,19 +2,16 @@ import unittest2
 import shared/[frames, proto]
 import std/options
 
-suite "test FramesHandler":
+suite "FramesHandler":
   test "Framing and parsing":
     var fh = FramesHandler()
     addHandler[Step](
       fh,
       proc (step: Step) =
-        assert step.ply == 20
-        echo step
+        check: step.ply == 20
     )
 
     let data = framify(Step(ply:20))
-
-    echo data
 
     fh.dispatch(data)
 
@@ -22,20 +19,18 @@ suite "test FramesHandler":
     var fh = FramesHandler()
 
     fh.handle(Step):
-      echo "Handler called, data: ", data
+      check: data.san.get == "a2a4"
 
     let data = framify(Step(san: some("a2a4")))
-
-    echo data
-
     fh.dispatch(data)
+
 
   test "Do notation for callback":
     var fh = FramesHandler()
 
     fh.addHandler() do(data: Step):
-      echo data
+      check: data.san.get == "b2b4"
 
     let data = framify(Step(san: some("b2b4")))
-    echo data
     fh.dispatch(data)
+

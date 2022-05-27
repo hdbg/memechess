@@ -1,4 +1,4 @@
-import server/services/commands
+import server/fish/interact/commands
 import unittest2
 
 suite "Test commands handler":
@@ -12,13 +12,12 @@ suite "Test commands handler":
       discard
 
   test "Do notation":
+    var called = false
 
     cd.addCommand("age", @[CommandParameter(name:"value", variant:cmdLongOption, kind:pkUInt)], "") do (ctx: CommandContext):
-      echo ctx.options
+      if ctx.options["value"] == "44":
+        called = true
 
     cd.dispatch("age --value=44")
 
-  test "Convienient template":
-
-    cd.addCommand("date", @[CommandParameter(name: "month", variant: cmdLongOption, kind:pkUInt)], "") do (ctx: CommandContext):
-      echo ctx.options
+    check: called

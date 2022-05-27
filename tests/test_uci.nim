@@ -1,5 +1,5 @@
 import unittest2
-include server/chess/uci
+include server/fish/chess/uci
 
 suite "Engine-to-GUI":
 

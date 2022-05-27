@@ -8,3 +8,5 @@ memechess
 memechess.exe
 /src/server/fish/interact/stdlib.zip
 /cmemechess
+/tests/engine
+/tests/test_engine
