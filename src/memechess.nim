@@ -9,9 +9,24 @@ const
 /\ \/\ \/\ \/\  __//\ \/\ \/\ \/\  __//\ \__/\ \ \ \ \/\  __//\__, `\/\__, `\
 \ \_\ \_\ \_\ \____\ \_\ \_\ \_\ \____\ \____\\ \_\ \_\ \____\/\____/\/\____/
  \/_/\/_/\/_/\/____/\/_/\/_/\/_/\/____/\/____/ \/_/\/_/\/____/\/___/  \/___/ """
+
+  version = block:
+    proc iFind(str, sub: string, start=0): int =
+      result = str.find(sub, start=start)
+      if result != -1:
+        result.inc sub.len
+
+    let nContent = staticRead"memechess.nimble"
+
+    let
+      left = nContent.iFind("\"", nContent.iFind("version"))
+      right = nContent.iFind("\"", left) - 2 # weird index shit
+
+    nContent[left..right]
+
   footer = block:
     let
-     realFooter = "Gigachad Software 2022 (c)"
+     realFooter = &"Gigachad Software 2022 (c) v.{version}"
 
      logoLines = logo.splitLines
      logoLineLength = len(logoLines[len(logoLines) div 2])
@@ -37,7 +52,7 @@ when false:
       quit()
 
 echo green logo
-echo blue blink(footer)
+echo blue footer
 
 const prefix =
   when not defined release:
