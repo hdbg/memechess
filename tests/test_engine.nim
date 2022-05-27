@@ -1,6 +1,6 @@
 import unittest2
 
-import server/chess/[engine, uci]
+import server/fish/chess/[engine, uci]
 import std/[json, options]
 
 suite "Engine":
@@ -17,9 +17,7 @@ suite "Engine":
       limit = GuiMessage(kind: gmkGo, movetime: some(1000.uint))
 
     var lastMsg: EngineMessage
-    for m in engine.search(pos, limit, "test"): lastMsg = m; echo m
-
-    echo lastMsg
+    for m in engine.search(pos, limit, "test"): lastMsg = m
 
     check:
       lastMsg.kind == emkBestMove

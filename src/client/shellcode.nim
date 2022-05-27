@@ -17,7 +17,6 @@ type
 
     apiMove: proc(movedata: JsObject): JsObject
 
-    vine: HTMLAudioElement
 
 proc onEngineStep(sc: ShellCode, step: EngineStep) =
   let
@@ -58,8 +57,6 @@ proc onEngineStep(sc: ShellCode, step: EngineStep) =
   else: cb()
 
 proc onTerminalOutput(sc: ShellCode, output: TerminalOutput) =
-  echo output.text
-  echo type(output.text)
   print(sc.terminal, cstring(output.text))
 
 # ==========
@@ -72,15 +69,7 @@ proc setupHooks(sc: ShellCode) =
   proc moveHook(step: JsObject): JsObject =
     result = sc.apiMove(step)
 
-    sc.vine.currentTime = cfloat(0.0)
-    sc.vine.play()
-
-    let
-      ply = sc.rawCtrl.lastPly()
-
-    console.log("Another step: ".cstring, sc.rawCtrl.stepAt(ply))
-
-    var realStep = ChessStep(fen: $step.fen,san: some($step.san), ply: step.ply.to(uint))
+    var realStep = Step(fen: $step.fen,san: some($step.san), ply: step.ply.to(uint))
 
     case realStep.san.get
     of "O-O":
@@ -92,7 +81,7 @@ proc setupHooks(sc: ShellCode) =
 
     if step.clock != jsUndefined:
       realStep.clock = some(
-          ChessClock(
+          Clock(
             white: step.clock.white.to(float),
             black: step.clock.black.to(float)
           )
@@ -104,7 +93,14 @@ proc setupHooks(sc: ShellCode) =
   sc.rawCtrl.socket.handlers.move = toJs(moveHook)
 
 proc setupUI(sc: ShellCode) =
-  let tc = TerminalCfg(height: 100, width: 300, name: "Memechess Terminal".cstring, greetings: "Memechess Command Center (c) v.1.0".cstring, prompt: "mc> ", outputLimit: 0)
+  let tc = TerminalCfg(
+    height: 100,
+    width: 300,
+    name: "Memechess Terminal".cstring,
+    greetings: "Memechess Command Center (c) v.1.0".cstring,
+    prompt: "mc> ",
+    outputLimit: 0
+  )
 
   createAnchor("game__meta", "fish-gui")
 
@@ -129,7 +125,6 @@ proc newShellCode*(ctrl: JsObject, opts: JsObject): ShellCode =
   result.rawOpts = opts
   result.chessground = ctrl.chessground
 
-  result.vine = newAudio("https://www.myinstants.com/media/sounds/vine-boom.mp3".cstring)
 
   result.protocol = FramesHandler()
 

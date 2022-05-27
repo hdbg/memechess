@@ -1,9 +1,8 @@
-import std/[asyncdispatch, os, distros, httpclient, distros, json]
-import std/[times]
-import fab
-import http
+import std/[asyncdispatch, strutils, strformat]
+import termstyle
 
-const logo = """                                            __
+const
+  logo = """                                            __
                                            /\ \
   ___ ___      __    ___ ___      __    ___\ \ \___      __    ____    ____
 /' __` __`\  /'__`\/' __` __`\  /'__`\ /'___\ \  _ `\  /'__`\ /',__\  /',__\
@@ -11,38 +10,57 @@ const logo = """                                            __
 \ \_\ \_\ \_\ \____\ \_\ \_\ \_\ \____\ \____\\ \_\ \_\ \____\/\____/\/\____/
  \/_/\/_/\/_/\/____/\/_/\/_/\/_/\/____/\/____/ \/_/\/_/\/____/\/___/  \/___/ """
 
-proc downloadEngine() =
-  let client = newHttpClient()
+  version = block:
+    proc iFind(str, sub: string, start=0): int =
+      result = str.find(sub, start=start)
+      if result != -1:
+        result.inc sub.len
 
-  let
-    releasesData = client.getContent("https://api.github.com/repos/ianfab/Fairy-Stockfish/releases/latest")
-    releases = parseJson(releasesData)
+    let nContent = staticRead"memechess.nimble"
 
-  var targetName: string
+    let
+      left = nContent.iFind("\"", nContent.iFind("version"))
+      right = nContent.iFind("\"", left) - 2 # weird index shit
 
-  if detectOs(Linux):
-    targetName = "fairy-stockfish-largeboard_x86-64"
-  elif detectOs(Windows):
-    targetName = "fairy-stockfish-largeboard_x86-64.exe"
+    nContent[left..right]
 
-  for asset in releases["assets"].items():
-    if asset["name"].getStr() == targetName:
-      client.downloadFile(asset["browser_download_url"].getStr, "engine.exe")
-      return
+  footer = block:
+    let
+     realFooter = &"Gigachad Software 2022 (c) v.{version}"
 
+     logoLines = logo.splitLines
+     logoLineLength = len(logoLines[len(logoLines) div 2])
+
+    repeat(' ', logoLineLength - realFooter.len) & realFooter
+
+
+# Setup error hook
+unhandledExceptionHook = proc(e: ref Exception) =
+  when defined release:
+    echo red e.name
+  else:
+    echo red e.msg
+
+  quit(QuitFailure)
 
 # MEME LICENSE CHECK
-
-when isMainModule:
+when false:
   let f = initTimeFormat("yyyy-MM-dd")
 
-  if (CompileDate.parse(f, utc()) + initDuration(days=1)) < utc(now()):
-    quit()
+  when defined release:
+    if (CompileDate.parse(f, utc()) + initDuration(days=1)) < utc(now()):
+      quit()
 
-  purple(logo)
+echo green logo
+echo blue footer
 
-  if not os.fileExists("engine.exe"): downloadEngine()
-  discard existsOrCreateDir("mchess")
-  discard existsOrCreateDir("mchess" / "configs")
+const prefix =
+  when not defined release:
+    "Dev Build"
+  else:
+    "Build"
 
-  waitFor http.main()
+echo magenta &"{prefix} [{CompileDate} {CompileTime}]"
+
+import http
+waitFor http.main()

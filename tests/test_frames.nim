@@ -2,40 +2,35 @@ import unittest2
 import shared/[frames, proto]
 import std/options
 
-suite "test FramesHandler":
+suite "FramesHandler":
   test "Framing and parsing":
     var fh = FramesHandler()
-    addHandler[ChessStep](
+    addHandler[Step](
       fh,
-      proc (step: ChessStep) =
-        assert step.ply == 20
-        echo step
+      proc (step: Step) =
+        check: step.ply == 20
     )
 
-    let data = framify(ChessStep(ply:20))
-
-    echo data
+    let data = framify(Step(ply:20))
 
     fh.dispatch(data)
 
   test "More convienient notation":
     var fh = FramesHandler()
 
-    fh.handle(ChessStep):
-      echo "Handler called, data: ", data
+    fh.handle(Step):
+      check: data.san.get == "a2a4"
 
-    let data = framify(ChessStep(san: some("a2a4")))
-
-    echo data
-
+    let data = framify(Step(san: some("a2a4")))
     fh.dispatch(data)
+
 
   test "Do notation for callback":
     var fh = FramesHandler()
 
-    fh.addHandler() do(data: ChessStep):
-      echo data
+    fh.addHandler() do(data: Step):
+      check: data.san.get == "b2b4"
 
-    let data = framify(ChessStep(san: some("b2b4")))
-    echo data
+    let data = framify(Step(san: some("b2b4")))
     fh.dispatch(data)
+

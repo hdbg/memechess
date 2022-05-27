@@ -1,162 +1,143 @@
+import std/[asyncdispatch, options, random]
+import std/[tables, os]
+
 import shared/[frames, proto]
-import std/[asyncdispatch, options, random, strformat, math]
-import std/[tables]
+
 import ws
-import services/[commands, config]
-import chess/[engine, uci]
 import chronicles
 
+import fish/types
+import fish/interact/[commands, configs, scripts]
+import fish/chess/engine
+
 type
-  GameState = object
-    info: ChessGameStart
-    fen: Option[string]
-    moves: seq[string]
-
-    score: int
-    clock: ChessClock
-    ply: uint
-
-    opts: EvalResult
-
-    config: Option[Config]
-
-  FishMode = enum fmOff, fmLegit, fmRage, fmManual, fmAdvisor
+  RunnablePriority {.pure.} = enum Scripts, Configs
 
   FishState = object
     mode: FishMode
     autosearch: bool
+    priority: RunnablePriority
 
   FishServer* = ref object
     proto: FramesHandler
     commands: CommandDispatcher
+
     conn*: WebSocket
 
     engine: ChessEngine
-    configs: ConfigManager
 
-    gameState: GameState
-    fishState: FishState
+    configs: ConfigManager
+    scripts: ScriptsManager
+
+    state: GameState
+    prefs: FishState
+
+proc send[T](fs: FishServer, data: T) {.async.} =
+  await fs.conn.send framify(data)
 
 proc echo(fs: FishServer, text: string) {.async.} =
-  await fs.conn.send(framify(TerminalOutput(text: text)))
+  await fs.send TerminalOutput(text: text)
 
-proc prepareLimit(fs: FishServer, vars: EvalVars) =
-  var suitableMode: ConfigKind
+proc eval(fs: FishServer): Option[EvalResult] =
+  let
+    vars = initEvalVars(fs.state)
+    mode = fs.prefs.mode
 
-  case fs.fishState.mode
-  of fmLegit:
-    suitableMode = ckLegit
-  of fmRage:
-    suitableMode = ckRage
-  of fmAdvisor:
-    suitableMode = ckAdvisor
-  of fmManual, fmOff: return
+  result = fs.scripts.eval(fs.state, vars)
+  if result.isSome: return
 
-  for c in fs.configs.configs:
-    if c.kind != suitableMode: continue
-    if fs.gameState.info.time notin c.time: continue
+  result = fs.configs.eval(fs.state, vars, mode)
+  if result.isSome: return
 
-    fs.gameState.config = some(c)
+  raise IOError.newException("Ало блять шизоїд йобаний, в тебе, сука, ані конфігів, ані скриптів нема тойво")
 
-  try:
-    fs.gameState.opts = get(fs.gameState.config).eval(vars)
-
-    info "config.used", name=get(fs.gameState.config).name
+proc go(fs: FishServer) {.async.} =
+  if not fs.state.canMove: return
+  if fs.prefs.mode == fmOff:
+    debug "fish.off"
     return
-  except ValueError as e:
-    echo e.msg
 
-  raise ValueError.newException("No suitable config found")
+  let
+    vars = get fs.eval
+    msg = fs.engine.query(fs.state, vars)
 
-proc eval(fs: FishServer): GuiMessage =
-  var evVars = EvalVars(my_score: fs.gameState.score, enemy_score: -fs.gameState.score, ply: fs.gameState.ply)
+  let clientMove = EngineStep(
+    premove: vars.delay == 0,
+    move: msg.bestmove,
+    delay: vars.delay
+  )
 
-  if fs.gameState.info.side == csWhite:
-    evVars.my_time = uint(fs.gameState.clock.white)
-    evVars.enemy_time = uint(fs.gameState.clock.black)
-  else:
-    evVars.enemy_time = uint(fs.gameState.clock.white)
-    evVars.my_time = uint(fs.gameState.clock.black)
+  await fs.send clientMove
 
-  fs.prepareLimit(evVars)
-  let evaluated = fs.gameState.opts
 
-  result = GuiMessage(kind: gmkGo)
-  result.movetime = some(evaluated.thinktime)
+proc onGameStart(fs: FishServer, data: GameStart) {.async.} =
+  fs.state = GameState()
 
-  fs.engine["UCI_LimitStrength"].check = true
+  if data.steps.len > 0:
+    when false:
+      # unused for now, but useful for chess960
+      fs.state.fen = some(data.steps[high(data.steps)].fen)
 
-  let uciElo = fs.engine["UCI_Elo"]
-  uciElo.spin = math.clamp(int(evaluated.elo), uciElo.min..uciElo.max)
+    for step in data.steps:
+      fs.state.moves.add step.uci.get
 
-proc sendInfo(fs: FishServer, msg: EngineMessage) {.async.} =
-  let info = msg.info
+  fs.state.info = data
 
-  var output: string
+  debug "game.start", moves=fs.state.moves, data=($data)
+  fs.scripts.fire(data)
 
-  if info.score.isSome and info.score.get.kind == eskCp:
-    let
-      score = info.score.get
-      val = if score.value.isSome: score.value.get else: 0
-      prefix = if val < 0: '-' else: '+'
-      color = if val < 0: "#" elif val == 0: "#dfdb21" else: "#52ec29"
+  await fs.go()
 
-    fs.gameState.score = val
+proc onGameStep(fs: FishServer, data: Step) {.async.} =
+  fs.state.moves.add data.uci.get()
 
-    output.add &"[[b;{color};]{$prefix}{$abs(val)}] "
-    # output.add &"{prefix}{$val} "
+  if data.clock.isSome:
+    fs.state.clock = data.clock.get
 
-    if info.nodes.isSome:
-      output.add &"nodes={$info.nodes.get} "
+  fs.state.ply = data.ply
 
-    if info.nps.isSome:
-      output.add &"nps={$info.nps.get} "
+  fs.scripts.fire(data)
 
-    if info.depth.isSome:
-      output.add &"depth={$info.depth.get}"
+  await fs.go()
 
-    # await fs.echo(output)
 
-proc queryEngine(fs: FishServer) {.async.} =
-  if fs.fishState.mode == fmOff: return
-  let nextToMove = if len(fs.gameState.moves) mod 2 == 0: csWhite else: csBlack
+proc onPing(fs: FishServer) {.async.} = await fs.conn.send(framify(PingResponse()))
 
-  debug "side", next=nextToMove, saved=fs.gameState.info.side
-  if nextToMove != fs.gameState.info.side: return
-  info "engine.search", toMove=nextToMove
+# =======================================================================================
 
-  let pos = GuiMessage(kind: gmkPosition, moves: fs.gameState.moves)
-
-  var limit = fs.eval() # Config invoke here
-
-  debug "config.eval", data=limit
-
-  var best: EngineMessage
-  for msg in fs.engine.search(pos, limit, game_id=fs.gameState.info.id):
-    if msg.kind == emkInfo:
-      await fs.sendInfo(msg)
-    elif msg.kind == emkBestMove:
-      best = msg
-
-  let step = EngineStep(move: best.bestmove, delay: fs.gameState.opts.delay)
-  await fs.conn.send framify(step)
-
-  debug "engine.best", step=step
-
-include modules/cmds
-include modules/events
 
 proc newFishServer*(): FishServer {.gcsafe.} =
+  discard existsOrCreateDir("mchess")
+
   randomize()
 
   new result
 
   result.proto = FramesHandler()
   result.commands = newCommandDispatcher()
-  result.configs = newConfigManager()
-  result.engine = newChessEngine("engine.exe")
 
-  result.commandsRegister()
-  result.eventsRegister()
+  result.engine = newChessEngine("mchess" / "engine.exe")
+
+  result.configs = newConfigManager()
+  result.scripts = newScriptsManager(result.engine)
+
+  #TEMP
+  result.prefs.mode = fmRage
+
+  let
+    fs = result
+    fh = fs.proto
+
+  fh.handle(proto.GameStart):
+    asyncCheck fs.onGameStart(data)
+
+  fh.handle(proto.Step):
+    asyncCheck fs.onGameStep(data)
+
+  fh.handle(proto.TerminalInput):
+    fs.commands.dispatch(data.text)
+
+  fh.handle(proto.Ping):
+    asyncCheck fs.onPing()
 
 proc handle*(fs: FishServer, msg: string) = fs.proto.dispatch(msg)

@@ -1,29 +1,47 @@
-import std/[asynchttpserver, asyncdispatch, asyncfutures, httpclient, strutils, options]
+import std/[asynchttpserver, asyncdispatch, asyncfutures, httpclient]
+import std/[httpcore, uri, strutils]
 import chronicles
-import std/[httpcore, uri]
-import customsocket
 import server/fish
-import injector
+
+import server/net/[customsocket, injector]
 
 const interceptPort = 8080
 
-proc intercept(req: Request) {.async gcsafe.} =
+const payload = block:
+  var
+    output: string
+    eCode: int
+
+  when defined release:
+    (output, eCode) = gorgeEx "nim js -d:release client/loader.nim"
+  else:
+    (output, eCode) = gorgeEx "nim js client/loader.nim"
+
+  if eCode == 1:
+    echo output
+    raise ValueError.newException("Client compilation error")
+
+  staticRead"shellcode.js"
+
+proc intercept(req: Request) {.async, gcsafe.} =
   when defined trace: debug "intercept.received"
 
   const
     domain = "https://lichess.org"
     charSize = sizeof char
 
-  let
-    reqUrl = $req.url
+  let reqUrl = $req.url
 
   let http = newAsyncHttpClient()
 
   var headers = req.headers
   headers["host"] = "lichess.org"
 
-  let resp = await http.request(domain & uri.`$`(req.url), httpMethod = req.reqMethod,
-      headers = headers, body = req.body)
+  let resp = await http.request(
+    domain & uri.`$`(req.url),
+    httpMethod = req.reqMethod,
+    headers = headers, body = req.body
+  )
 
   when defined trace: debug "lichess.answer", status = resp.status, headers = resp.headers
 
@@ -32,14 +50,16 @@ proc intercept(req: Request) {.async gcsafe.} =
     respHeaders = resp.headers
 
   if respHeaders.hasKey("content-type") and "html" in $respHeaders["content-type"]:
-    body = await inject(resp)
+    body = await inject(resp, payload)
   else:
     body = await resp.body()
 
   respHeaders["content-length"] = $(body.len * charSize)
-  respHeaders.del "transfer-encoding"
+
+  respHeaders.del "transfer-encoding" # Because http response already decoded
 
   if respHeaders.hasKey "set-cookie":
+    # Browser policy blocks setting cookie from another domain (localhost)
     respHeaders["set-cookie"] = respHeaders["set-cookie"].replace(" Domain=lichess.org;", "")
 
   await req.respond(code = resp.code, content = $body,
@@ -64,15 +84,11 @@ proc wsocket(req: Request) {.async gcsafe.} =
         var msg = liMsg.read
         await sck.send msg
 
-        # when defined trace: debug "lisck.received", message=msg
-
         liMsg = liSck.receiveStrPacket()
 
       if sckMsg.finished:
         var msg  = sckMsg.read
         await liSck.send msg
-
-        # when defined trace: debug "sck.received", message=msg
 
         sckMsg = sck.receiveStrPacket()
 
@@ -83,19 +99,15 @@ proc wsocket(req: Request) {.async gcsafe.} =
   sck.close()
 
 proc startChess(req: Request) {.async, gcsafe.} =
-  var server {.global.}: Option[FishServer]
-
-  if server.isNone:
-    server = some(newFishServer())
+  var server {.global.} = newFishServer()
 
   var chessSocket = await newWebsocket(req)
-
-  get(server).conn = chessSocket
+  server.conn = chessSocket
 
   while chessSocket.readyState == Open:
     try:
       let msg = await chessSocket.receiveStrPacket()
-      get(server).handle(msg)
+      server.handle(msg)
     except WebSocketError: return
 
 
@@ -112,7 +124,7 @@ proc main* {.async.} =
   server.listen(Port(interceptPort))
   let port = server.getPort
 
-  info "evilfish.serve", port = port.int
+  info "memechess.ready", port = port.int
 
   while true:
     await server.acceptRequest(dispatch)

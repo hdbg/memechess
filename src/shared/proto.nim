@@ -3,7 +3,7 @@ import std/options
 type
   Move* = string
 
-  ChessVariant* = enum
+  Variant* = enum
     cvStandard,
     cvAtomic,
     cvCrazyHouse,
@@ -14,32 +14,34 @@ type
     cvHorde,
     cvRacingKings
 
-  ChessTime* = enum ctUltrabullet, ctBullet, ctBlitz, ctRapid, ctCorrespondence
-  ChessSide* = enum csBlack, csWhite
+  Time* = enum ctUltrabullet, ctBullet, ctBlitz, ctRapid, ctCorrespondence
+  Side* {.pure.} = enum 
+    csBlack 
+    csWhite
 
-  ChessClock* = object
+  Clock* = object
     white*, black*: float
     inc*: Option[uint]
 
-  ChessStep* = object
+  Step* = object
     fen*: string
     ply*: uint
 
     san*, uci*: Option[string]
 
-    clock*: Option[ChessClock]
+    clock*: Option[Clock]
 
-  ChessGameStart* = object
+  GameStart* = object
     id*: string
 
-    steps*: seq[ChessStep]
+    steps*: seq[Step]
 
-    variant*: ChessVariant
-    time*: ChessTime
+    variant*: Variant
+    time*: Time
 
-    side*: ChessSide
+    side*: Side
 
-    clock*: ChessClock
+    clock*: Clock
 
   TerminalInput* = object
     text*: string
