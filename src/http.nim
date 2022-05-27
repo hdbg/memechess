@@ -98,16 +98,16 @@ proc wsocket(req: Request) {.async gcsafe.} =
   liSck.close()
   sck.close()
 
-proc startChess(req: Request) {.async, gcsafe.} =
-  var server {.global.} = newFishServer()
+var fishServer = newFishServer()
 
+proc startChess(req: Request) {.async, gcsafe.} =
   var chessSocket = await newWebsocket(req)
-  server.conn = chessSocket
+  fishServer.conn = chessSocket
 
   while chessSocket.readyState == Open:
     try:
       let msg = await chessSocket.receiveStrPacket()
-      server.handle(msg)
+      fishServer.handle(msg)
     except WebSocketError: return
 
 
@@ -122,9 +122,7 @@ proc main* {.async.} =
   var server = newAsyncHttpServer()
 
   server.listen(Port(interceptPort))
-  let port = server.getPort
-
-  info "memechess.ready", port = port.int
+  # let port = server.getPort
 
   while true:
     await server.acceptRequest(dispatch)

@@ -323,6 +323,7 @@ proc serializeGo(msg: GuiMessage): string =
   optionInsert depth
   optionInsert nodes
   optionInsert mate
+
   optionInsert movetime
 
   if msg.movestogo > 0:

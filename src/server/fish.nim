@@ -43,7 +43,7 @@ proc eval(fs: FishServer): Option[EvalResult] =
     vars = initEvalVars(fs.state)
     mode = fs.prefs.mode
 
-  result = fs.scripts.eval(fs.state, vars)
+  result = fs.scripts.eval(fs.state, vars, mode)
   if result.isSome: return
 
   result = fs.configs.eval(fs.state, vars, mode)
@@ -62,26 +62,15 @@ proc go(fs: FishServer) {.async.} =
     msg = fs.engine.query(fs.state, vars)
 
   let clientMove = EngineStep(
-    premove: vars.delay == 0,
+    premove: vars.premove,
     move: msg.bestmove,
     delay: vars.delay
   )
 
   await fs.send clientMove
 
-
 proc onGameStart(fs: FishServer, data: GameStart) {.async.} =
-  fs.state = GameState()
-
-  if data.steps.len > 0:
-    when false:
-      # unused for now, but useful for chess960
-      fs.state.fen = some(data.steps[high(data.steps)].fen)
-
-    for step in data.steps:
-      fs.state.moves.add step.uci.get
-
-  fs.state.info = data
+  fs.state = data.initGameState
 
   debug "game.start", moves=fs.state.moves, data=($data)
   fs.scripts.fire(data)
@@ -92,7 +81,7 @@ proc onGameStep(fs: FishServer, data: Step) {.async.} =
   fs.state.moves.add data.uci.get()
 
   if data.clock.isSome:
-    fs.state.clock = data.clock.get
+    fs.state.clock = data.clock
 
   fs.state.ply = data.ply
 
@@ -139,5 +128,8 @@ proc newFishServer*(): FishServer {.gcsafe.} =
 
   fh.handle(proto.Ping):
     asyncCheck fs.onPing()
+
+  info "memechess.ready"
+
 
 proc handle*(fs: FishServer, msg: string) = fs.proto.dispatch(msg)

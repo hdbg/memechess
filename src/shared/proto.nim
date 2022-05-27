@@ -15,8 +15,8 @@ type
     cvRacingKings
 
   Time* = enum ctUltrabullet, ctBullet, ctBlitz, ctRapid, ctCorrespondence
-  Side* {.pure.} = enum 
-    csBlack 
+  Side* {.pure.} = enum
+    csBlack
     csWhite
 
   Clock* = object
@@ -41,7 +41,7 @@ type
 
     side*: Side
 
-    clock*: Clock
+    clock*: Option[Clock]
 
   TerminalInput* = object
     text*: string

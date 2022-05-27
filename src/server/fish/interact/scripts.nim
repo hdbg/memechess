@@ -3,7 +3,9 @@ import server/fish/chess/engine as ce
 import shared/proto
 
 import chronicles
+
 import nimscripter
+import nimscripter/variables
 
 import std/[os, options, macros, tables, md5]
 
@@ -15,6 +17,7 @@ const stdFiles = block:
   var result = initTable[string, tuple[hash, content: string]]()
 
   let foundPath = parentDir(currentSourcePath()) / "stdlib"
+
 
   for dir in walkDirRec(foundPath, checkDir = true):
     let
@@ -35,7 +38,7 @@ type
     has: bool
 
 converter toOption[T](p: Optionable[T]): Option[T] =
-  if p.isSome:
+  if p.has:
     result = options.some(p.val)
   else:
     result = options.none[T]()
@@ -43,9 +46,20 @@ converter toOption[T](p: Optionable[T]): Option[T] =
 # Scripts
 
 type
+  Script* = object
+    name: Option[string]
+    author: Option[string]
+    version: Option[string]
+
+    kind*: RunnableMode
+    time*: seq[Time]
+    variant*: Variant
+
+    interpreter: Interpreter
+
   ScriptsManager* = ref object
     engine: ChessEngine
-    scripts: seq[Interpreter]
+    scripts: seq[Script]
 
 proc deployStd() =
   discard existsOrCreateDir stdPath
@@ -65,6 +79,26 @@ proc deployStd() =
         error "corrupted", file=filepath
         writeFile(realPath, fileData.content)
 
+proc initScript(i: Interpreter): Script =
+  getGlobalNimsVars i:
+    name: Optionable[string]
+    author: Optionable[string]
+    version: Optionable[string]
+
+    kind: RunnableMode
+    time: seq[Time]
+    variant: Variant
+
+  result.name = name
+  result.author = author
+  result.version = version
+
+  result.kind = kind
+  result.time = time
+  result.variant = variant
+
+  result.interpreter = i
+
 proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
   discard existsOrCreateDir(scriptsPath)
 
@@ -80,6 +114,7 @@ proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
 
     EvalResult,
     EvalVars,
+    FishMode,
     # ChessEngine,
     # EngineOption,
     Optionable,
@@ -98,15 +133,17 @@ proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
     proc isSome[T](op: Optionable[T]): bool = op.has
     proc isNone[T](op: Optionable[T]): bool = not op.has
 
-    proc some[T](val: T): Optionable[T] = Optionable[T](value: val, has: true)
+    proc some[T](val: T): Optionable[T] = Optionable[T](val: val, has: true)
     proc none[T](): Optionable[T] = Optionable[T](has: false)
     proc none(T: typedesc): Optionable[T] = Optionable[T](has: false)
+
+    proc get[T](o: Optionable[T]): T = o.val
 
   # callbacks
   addCallable(memeScript):
     proc onGameStart(data: GameStart)
     proc onStep(step: Step)
-    proc onEngineFire(state: GameState, vars: EvalVars): tuple[has: bool, val: EvalResult]
+    proc onEngineFire(state: GameState, vars: EvalVars): EvalResult
     # onGameEnd
 
   const scriptSpace = implNimScriptModule(memeScript)
@@ -122,19 +159,24 @@ proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
     )
 
     if scriptUnit.isSome:
-      result.scripts.add move(scriptUnit.get)
+      result.scripts.add get(scriptUnit).initScript
       debug "script.loaded", path=s
 
 using mng: ScriptsManager
 
 proc fire*(mng; start: GameStart) =
-  for s in mng.scripts: s.invoke(onGameStart, start)
+  for s in mng.scripts: s.interpreter.invoke(onGameStart, start)
 
 proc fire*(mng; step: Step) =
-  for s in mng.scripts: s.invoke(onStep, step)
+  for s in mng.scripts: s.interpreter.invoke(onStep, step)
 
-proc eval*(mng; state: GameState, vars: EvalVars): Option[EvalResult] =
+proc eval*(mng; state: GameState, vars: EvalVars, mode: FishMode): Option[EvalResult] =
   for s in mng.scripts:
-    let r = s.invoke(onEngineFire, state, vars, returnType = tuple[has: bool, val: EvalResult])
-    if r.has:
-      return options.some(r.val)
+    if s.kind != mode: continue
+    if s.variant != state.info.variant: continue
+    if state.info.time notin s.time: continue
+
+    return some s.interpreter.invoke(onEngineFire, state, vars, returnType = EvalResult)
+
+
+

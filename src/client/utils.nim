@@ -46,13 +46,15 @@ proc createStart*(opts: JsObject): GameStart =
   if data.clock != jsUndefined:
     let clock = data.clock
 
-    result.clock = Clock(
+    var newClock = Clock(
       white: clock.white.to(float),
       black: clock.black.to(float)
     )
 
     if clock.inc != jsUndefined:
-      result.clock.inc = toSome[uint](clock.inc)
+      newClock.inc = toSome[uint](clock.inc)
+
+    result.clock = some newClock
 
   for step in (data.steps.to(seq[JsObject])):
     if step.uci != jsNull and step.san != jsNull:

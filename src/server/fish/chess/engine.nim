@@ -3,6 +3,9 @@ import uci
 import server/fish/types
 import shared/proto
 
+when defined trace:
+  import chronicles
+
 when defined Linux:
   import std/posix
 
@@ -121,8 +124,33 @@ iterator search*(engine: ChessEngine, pos, limit: GuiMessage, game_id: string): 
 
 proc query*(engine: ChessEngine, state: GameState, vars: EvalResult): EngineMessage =
   let
-    pos = GuiMessage(kind: gmkPosition, moves: state.moves)
-    limit = GuiMessage(kind: gmkGo, movetime: some(vars.thinktime))
+    pos = GuiMessage(
+      kind: gmkPosition,
+      moves: state.moves
+    )
+  var limit = GuiMessage(kind: gmkGo)
+
+  if isSome state.clock:
+    let
+      wtime = millis state.whiteTime
+      btime = millis state.blackTime
+
+    if wtime == 0 and btime == 0:
+      limit.wtime = some 15000.uint # game start move delay
+      limit.btime = some 15000.uint
+    else:
+      limit.wtime = some wtime
+      limit.btime = some btime
+
+    let clock = get state.clock
+    if isSome clock.inc:
+      let inc = some get(clock.inc) * 1000 # millis
+
+      limit.winc = inc
+      limit.binc = inc
+
+  if vars.thinktime > 0:
+    limit.movetime = some vars.thinktime
 
   block elo:
     let limitStrength = engine["UCI_LimitStrength"]
