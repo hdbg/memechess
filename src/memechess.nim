@@ -31,11 +31,12 @@ unhandledExceptionHook = proc(e: ref Exception) =
   quit(QuitFailure)
 
 # MEME LICENSE CHECK
-let f = initTimeFormat("yyyy-MM-dd")
+when false:
+  let f = initTimeFormat("yyyy-MM-dd")
 
-when defined release:
-  if (CompileDate.parse(f, utc()) + initDuration(days=1)) < utc(now()):
-    quit()
+  when defined release:
+    if (CompileDate.parse(f, utc()) + initDuration(days=1)) < utc(now()):
+      quit()
 
 echo green logo
 echo blue blink(footer)
