@@ -24,11 +24,11 @@ type
     score*: int
     enemyScore*: int
 
-func initGameState*(start: GameStart): GameState = 
+func initGameState*(start: GameStart): GameState =
   result.info = start
-  
+
   for step in start.steps:
-    if step.uci.isSome: 
+    if step.uci.isSome:
       result.moves.add step.uci.get
 
   if start.steps.len > 0:
@@ -38,7 +38,7 @@ func initGameState*(start: GameStart): GameState =
     if lastStep.clock.isSome:
       result.clock = lastStep.clock.get
 
-func canMove*(state: GameState): bool = 
+func canMove*(state: GameState): bool =
   let nextToMove: Side = if len(state.moves) mod 2 == 0: Side.csWhite else: Side.csBlack
   result = nextToMove == state.info.side
 
@@ -50,7 +50,7 @@ func getEnemyTime*(state: GameState): float =
   if state.info.side == Side.csBlack: return state.clock.white
   state.clock.black
 
-func initEvalVars*(state: GameState): EvalVars = 
+func initEvalVars*(state: GameState): EvalVars =
   result.myScore = state.score
   result.enemyScore = state.enemyScore
 

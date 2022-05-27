@@ -3,7 +3,6 @@ import server/fish/chess/engine as ce
 import shared/proto
 
 import chronicles
-import zippy
 import nimscripter
 
 import std/[os, options, macros, tables, md5]
@@ -34,11 +33,6 @@ type
   PseudoOption[T] = ref object
     val: T
     has: bool
-
-proc some[T](val: T): PseudoOption[T] =
-  PseudoOption(val: move(val), has: true)
-
-proc none[T](): PseudoOption[T] = PseudoOption[T](has: false)
 
 proc isSome[T](op: PseudoOption[T]): bool = op.has
 proc isNone[T](op: PseudoOption[T]): bool = not op.has
@@ -75,7 +69,7 @@ proc deployStd() =
         writeFile(realPath, fileData.content)
 
 proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
-  discard existsOrCreateDir("mchess" / "scripts")
+  discard existsOrCreateDir(scriptsPath)
 
   result = new ScriptsManager
 
@@ -113,7 +107,7 @@ proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
   addCallable(memeScript):
     proc onGameStart(data: GameStart)
     proc onStep(step: Step)
-    proc onEngineFire(state: GameState, vars: EvalVars): PseudoOption[EvalResult]
+    proc onEngineFire(state: GameState, vars: EvalVars): tuple[has: bool, val: EvalResult]
     # onGameEnd
 
   const scriptSpace = implNimScriptModule(memeScript)
@@ -142,5 +136,6 @@ proc fire*(mng; step: Step) =
 
 proc eval*(mng; state: GameState, vars: EvalVars): Option[EvalResult] =
   for s in mng.scripts:
-    result =  s.invoke(onEngineFire, state, vars, returnType = PseudoOption[EvalResult])
-    if result.isSome: return
+    let r = s.invoke(onEngineFire, state, vars, returnType = tuple[has: bool, val: EvalResult])
+    if r.has:
+      return options.some(r.val)

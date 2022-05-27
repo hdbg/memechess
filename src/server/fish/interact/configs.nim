@@ -178,6 +178,8 @@ proc newConfig(filepath: string): Config =
   result.validate filepath
 
 proc newConfigManager*(): ConfigManager =
+  discard existsOrCreateDir(configPath)
+
   result = new ConfigManager
 
   for c in walkFiles(configPath / "*.toml"):
