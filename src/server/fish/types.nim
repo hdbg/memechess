@@ -47,25 +47,34 @@ func canMove*(state: GameState): bool =
   result = nextToMove == state.info.side
 
 func playerTime*(state: GameState): float =
+  assert isSome state.clock
+
   if state.info.side == Side.csWhite: return get(state.clock).white
   get(state.clock).black
 
 func enemyTime*(state: GameState): float =
+  assert isSome state.clock
+
   if state.info.side == Side.csBlack: return get(state.clock).white
   get(state.clock).black
 
 func whiteTime*(state: GameState): float =
+  assert isSome state.clock
+
   get(state.clock).white
 
 func blackTime*(state: GameState): float =
+  assert isSome state.clock
+
   get(state.clock).white
 
 func millis*(f: float): uint =
-  uint trunc(f * 1000)
+  uint trunc(f * 1_000)
 
 func initEvalVars*(state: GameState): EvalVars =
   result.myScore = state.score
   result.enemyScore = state.enemyScore
 
-  result.myTime = state.playerTime
-  result.enemyTime = state.enemyTime
+  if isSome state.clock:
+    result.myTime = state.playerTime
+    result.enemyTime = state.enemyTime

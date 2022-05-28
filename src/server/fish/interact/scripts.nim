@@ -5,9 +5,12 @@ import shared/proto
 import chronicles
 
 import nimscripter
-import nimscripter/variables
+import nimscripter/[variables, expose]
 
 import std/[os, options, macros, tables, md5]
+
+# Imports for api
+import std/[sysrand]
 
 const
   scriptsPath = "mchess" / "scripts"
@@ -42,6 +45,13 @@ converter toOption[T](p: Optionable[T]): Option[T] =
     result = options.some(p.val)
   else:
     result = options.none[T]()
+
+type ScriptAPI = object
+const API = ScriptAPI()
+
+proc seed(a: ScriptAPI): int64 =
+  for i in urandom(sizeof int64):
+    result += i.int64
 
 # Scripts
 
@@ -127,6 +137,14 @@ proc newScriptsManager*(engine: ChessEngine): ScriptsManager =
     Step,
     GameStart,
     GameState,
+  )
+
+  exportTo(
+    memeScript,
+    # API
+    ScriptAPI,
+    API,
+    seed
   )
 
   exportCode(memeScript):
