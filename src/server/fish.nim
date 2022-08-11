@@ -1,5 +1,5 @@
 import std/[asyncdispatch, options, random]
-import std/[tables, os]
+import std/[tables, os, strformat]
 
 import shared/[frames, proto]
 
@@ -68,6 +68,34 @@ proc go(fs: FishServer) {.async.} =
   )
 
   await fs.send clientMove
+
+  let feedback = fs.engine.feedback
+
+  for info in feedback:
+    var message: string
+    if info.score.isSome and get(info.score).value.isSome:
+      let scoreVal = get(info.score).value.get
+
+      if scoreVal == 0:
+        message = &"[[b;yellow;]{scoreVal}"
+      elif scoreVal > 0:
+        message = &"[[b;green;]+{scoreVal}"
+      else:
+        message = &"[[b;red;]{scoreVal}"
+    else:
+      message = "[[;;]"
+
+    if info.depth.isSome: message.add &" depth={info.depth.get}"
+    # if info.nps.isSome: message.add &" nps={info.nps.get}"
+    # if info.nodes.isSome: message.add &" nodes={info.nodes.get}"
+    if info.time.isSome: message.add &" time={info.time.get}"
+    if info.currmove.isSome: message.add &" currmove={info.currmove.get}"
+
+    message.add ']'
+
+    await fs.send TerminalOutput(text: message)
+
+
 
 
 proc onGameStart(fs: FishServer, data: GameStart) {.async.} =

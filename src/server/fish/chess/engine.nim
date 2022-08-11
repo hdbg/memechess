@@ -14,6 +14,7 @@ type
     stdin, stdout, stderr: Stream
 
     game_id: string
+    feedback: seq[EngineInfo]
 
     options*: seq[EngineOption]
 
@@ -138,6 +139,9 @@ proc query*(engine: ChessEngine, state: GameState, vars: EvalResult): EngineMess
   for msg in engine.search(pos, limit, game_id=state.info.id):
     if msg.kind == emkInfo:
       let info = msg.info
+
+      engine.feedback.add info
+
       # await fs.sendInfo(msg)
       # TODO: Score report
 
@@ -155,3 +159,7 @@ proc query*(engine: ChessEngine, state: GameState, vars: EvalResult): EngineMess
       best = msg
 
   return best
+
+proc feedback*(engine: ChessEngine): seq[EngineInfo] = 
+  result = deepCopy(engine.feedback)
+  engine.feedback.setLen 0
