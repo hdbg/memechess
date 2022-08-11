@@ -17,6 +17,9 @@ type
 
     apiMove: proc(movedata: JsObject): JsObject
 
+  Arrow = object
+    orig, dest, brush: cstring
+
 
 proc onEngineStep(sc: ShellCode, step: EngineStep) =
   let
@@ -31,6 +34,9 @@ proc onEngineStep(sc: ShellCode, step: EngineStep) =
   if step.move.len > 4:
     const promotionTable = {'q':"queen", 'n':"knight", 'r':"rook", 'b':"bishop"}.toTable
     promotion = promotionTable[step.move[4]].toJs
+
+  # render arrow
+  sc.chessground.setShapes([Arrow{orig: before, dest: after, brush: "paleGreen"}])
 
   sc.chessground.selectSquare(before)
 
@@ -71,6 +77,7 @@ proc setupHooks(sc: ShellCode) =
 
     var realStep = Step(fen: $step.fen,san: some($step.san), ply: step.ply.to(uint))
 
+    # fix for castling
     case realStep.san.get
     of "O-O":
       realStep.uci = if realStep.ply mod 2 == 0: some("e8g8") else: some("e1g1")
