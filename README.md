@@ -2,12 +2,7 @@
 # Memechess
 [![CI](https://github.com/hdbg/memechess/actions/workflows/main.yml/badge.svg)](https://github.com/hdbg/memechess/actions/workflows/main.yml)
 
-#### *"АХАХАХАХАХАХАХАХАХАХАХ ВОНО ПРАЦЮЄ НАХУЙ АХАХАХАХАХ"* - @hdbg (c)
 Fully automatic chess bot with extensive configuration and scripting subsytem.
-
-## Features
-- [ ] #12
-- [x] https://github.com/hdbg/memechess/issues/11
 
 ---
 
